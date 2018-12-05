@@ -155,8 +155,8 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
         id: true,
         name: true,
         members: true,
-        updated: true,
-        roster: { allyCode: true, level: true, name: true, updated: true },
+        // updated: true,
+        roster: { allyCode: true, level: true, name: true },
       },
     });
 
@@ -212,8 +212,8 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
           project: {
             allyCode: true,
             // guildName: true,
-            // level: true,
-            // name: true,
+            level: true,
+            name: true,
             roster: {
               combatType: true,
               defId: true,
@@ -222,10 +222,11 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
               level: true,
               nameKey: true,
               rarity: true,
-              skills: { tier: true, nameKey: true, isZeta: true },
+              // TODO: on demand
+              skills: { id: true, tier: true, nameKey: true, isZeta: true },
             },
             stats: true,
-            updated: true,
+            // updated: true,
           },
         });
 
@@ -267,7 +268,8 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
                 power: u.gp,
                 rarity: u.rarity,
                 abilities: u.skills.map((e): Ability => {
-                  return { name: e.nameKey, tier: e.tier, isZeta: e.isZeta };
+                  const type = e.id.match(/^([^_]+)/)[1];
+                  return { type, name: e.nameKey, tier: e.tier, isZeta: e.isZeta };
                 }),
               };
             }
@@ -317,10 +319,11 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
           level: true,
           nameKey: true,
           rarity: true,
-          skills: { tier: true, nameKey: true, isZeta: true },
+          // TODO: on demand
+          skills: { id: true, tier: true, nameKey: true, isZeta: true },
         },
         stats: true,
-        updated: true,
+        // updated: true,
       },
     });
 
@@ -361,7 +364,8 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
           power: u.gp,
           rarity: u.rarity,
           abilities: u.skills.map((e): Ability => {
-            return { name: e.nameKey, tier: e.tier, isZeta: e.isZeta };
+            const type = e.id.match(/^([^_]+)/)[1];
+            return { type, name: e.nameKey, tier: e.tier, isZeta: e.isZeta };
           }),
         };
       }

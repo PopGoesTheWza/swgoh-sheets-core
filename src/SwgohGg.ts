@@ -20,6 +20,7 @@ namespace SwgohGg {
       power: number;
       rarity: number;
       ability_data: {
+        id: string;
         is_zeta: boolean;
         name: string;
         ability_tier: number;
@@ -204,7 +205,8 @@ namespace SwgohGg {
             power: d.power,
             rarity: d.rarity,
             abilities: d.ability_data.map((e): Ability => {
-              return { name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
+              const type = e.id.match(/^([^_]+)/)[1];
+              return { type, name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
             }),
           };
         }
@@ -288,7 +290,8 @@ namespace SwgohGg {
           power: d.power,
           rarity: d.rarity,
           abilities: d.ability_data.map((e): Ability => {
-            return { name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
+            const type = e.id.match(/^([^_]+)/)[1];
+            return { type, name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
           }),
         };
       }
