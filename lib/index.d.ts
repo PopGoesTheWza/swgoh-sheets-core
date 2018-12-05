@@ -154,6 +154,7 @@ export namespace  swgohhelpapi {
     type Skills = {
       id: string;
       tier: number;
+      nameKey: string;
       isZeta: boolean;
     };
     /** Bare Mod properties */

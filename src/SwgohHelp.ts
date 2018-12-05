@@ -136,7 +136,7 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
   }
 
   /** Pull Guild data from SwgohHelp */
-  export function getGuildData(): PlayerData[] {
+  export function getGuildData(allycode: number): GuildData {
 
     if (!checkLibrary()) {
       return undefined;
@@ -148,42 +148,48 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
     };
     const client = new swgohhelpapi.exports.Client(settings);
 
-    const allycode = config.SwgohHelp.allyCode();
-    const guild: swgohhelpapi.exports.GuildResponse[] = client.fetchGuild({
+    const jsonGuild: swgohhelpapi.exports.GuildResponse[] = client.fetchGuild({
       allycode,
       language: swgohhelpapi.Languages.eng_us,
       project: {
+        id: true,
         name: true,
         members: true,
         updated: true,
-        roster: {
-          allyCode: true,
-          gp: true,
-          gpChar: true,
-          gpShip: true,
-          level: true,  // TODO: store and process member level minimun requirement
-          name: true,
-          updated: true,
-        },
+        roster: { allyCode: true, level: true, name: true, updated: true },
       },
     });
 
-    if (guild && guild.length && guild.length === 1) {
+    if (jsonGuild && jsonGuild.length && jsonGuild.length === 1) {
 
-      const roster = guild[0].roster as swgohhelpapi.exports.PlayerResponse[];
+      const guild: GuildData = {
+        id: +jsonGuild[0].id.match(/([\d]+)/)[1],
+        name: jsonGuild[0].name,
+        members: [],
+      };
 
-      const red = roster.reduce(
+      const roster = jsonGuild[0].roster as swgohhelpapi.exports.PlayerResponse[];
+
+      const members = roster.reduce(
         (acc: {allyCodes: number[]; membersData: PlayerData[]}, r) => {
 
           const allyCode = r.allyCode;
           if (allyCode) {
             const p: PlayerData = {
               allyCode,
-              gp: r.gp,
-              heroesGp: r.gpChar,
               level: r.level,
               name: r.name,
-              shipsGp: r.gpShip,
+              gp: undefined,
+              heroesGp: undefined,
+              shipsGp: undefined,
+              fleetArenaBattlesWon: undefined,
+              squadArenaBattlesWon: undefined,
+              normalBattlesWon: undefined,
+              hardBattlesWon: undefined,
+              galacticWarBattlesWon: undefined,
+              guildRaidsWon: undefined,
+              guildTokensEarned: undefined,
+              gearDonatedInGuildExchange: undefined,
               units: {},
             };
             acc.allyCodes.push(allyCode);
@@ -198,48 +204,80 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
         } as {allyCodes: number[]; membersData: PlayerData[]},
       );
 
-      if (red.allyCodes.length > 0) {
-        const units = client.fetchUnits({
-          allycodes: red.allyCodes,
+      if (members.allyCodes.length > 0) {
+
+        const jsonPlayers = client.fetchPlayer({
+          allycodes: members.allyCodes,
           language: swgohhelpapi.Languages.eng_us,
           project: {
             allyCode: true,
-            type: true,
-            gp: true,
-            starLevel: true,
-            level: true,
-            gearLevel: true,
+            // guildName: true,
+            // level: true,
+            // name: true,
+            roster: {
+              combatType: true,
+              defId: true,
+              gp: true,
+              gear: true,
+              level: true,
+              nameKey: true,
+              rarity: true,
+              skills: { tier: true, nameKey: true, isZeta: true },
+            },
+            stats: true,
+            updated: true,
           },
         });
 
-        if (units && typeof units === 'object') {
-          const membersData = red.membersData;
-          for (const baseId in units) {
-            const u = units[baseId];
-            for (const i of u) {
-              const allyCode = i.allyCode;
-              const index = membersData.findIndex(e => e.allyCode === allyCode);
-              if (index > -1) {
-                const type = i.type === swgohhelpapi.COMBAT_TYPE.HERO
-                  ? Units.TYPES.HERO
-                  : Units.TYPES.SHIP;
-                membersData[index].units[baseId] = {
-                  type,
-                  baseId,
-                  gearLevel: i.gearLevel,
-                  level: i.level,
-                  // name: i.???,
-                  power: i.gp,
-                  rarity: i.starLevel,
-                  // stats: i.???,
-                  // tags: i.???,
-                };
-              }
+        if (jsonPlayers && jsonPlayers.length && !jsonPlayers[0].hasOwnProperty('error')) {
+          guild.members = jsonPlayers.map((e) => {
+
+            const getStats = (i) => {
+              const s = e.stats.find(o => o.index === i);
+              return s && s.value;
+            };
+            const member: PlayerData = {
+              allyCode: e.allyCode,
+              level: e.level,
+              name: e.name,
+              gp: getStats(1),
+              heroesGp: getStats(2),
+              shipsGp: getStats(3),
+              fleetArenaBattlesWon: getStats(4),
+              squadArenaBattlesWon: getStats(5),
+              normalBattlesWon: getStats(6),
+              hardBattlesWon: getStats(7),
+              galacticWarBattlesWon: getStats(8),
+              guildRaidsWon: getStats(9),
+              guildTokensEarned: getStats(10),
+              gearDonatedInGuildExchange: getStats(11),
+              units: {},
+            };
+            for (const u of e.roster) {
+              const baseId = u.defId;
+              const type = u.combatType === swgohhelpapi.COMBAT_TYPE.HERO
+                ? Units.TYPES.HERO
+                : Units.TYPES.SHIP;
+              member.units[baseId] = {
+                type,
+                baseId: u.defId,
+                gearLevel: u.gear,
+                level: u.level,
+                name: u.nameKey,
+                power: u.gp,
+                rarity: u.rarity,
+                abilities: u.skills.map((e): Ability => {
+                  return { name: e.nameKey, tier: e.tier, isZeta: e.isZeta };
+                }),
+              };
             }
-          }
+
+            return member;
+          });
+
+          return guild;
         }
 
-        return red.membersData;
       }
     }
 
@@ -279,6 +317,7 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
           level: true,
           nameKey: true,
           rarity: true,
+          skills: { tier: true, nameKey: true, isZeta: true },
         },
         stats: true,
         updated: true,
@@ -293,12 +332,19 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
       };
       const player: PlayerData = {
         allyCode: e.allyCode,
+        level: e.level,
+        name: e.name,
         gp: getStats(1),
         heroesGp: getStats(2),
-        level: e.level,
-        // link: e.url,
-        name: e.name,
         shipsGp: getStats(3),
+        fleetArenaBattlesWon: getStats(4),
+        squadArenaBattlesWon: getStats(5),
+        normalBattlesWon: getStats(6),
+        hardBattlesWon: getStats(7),
+        galacticWarBattlesWon: getStats(8),
+        guildRaidsWon: getStats(9),
+        guildTokensEarned: getStats(10),
+        gearDonatedInGuildExchange: getStats(11),
         units: {},
       };
       for (const u of e.roster) {
@@ -314,8 +360,9 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
           name: u.nameKey,
           power: u.gp,
           rarity: u.rarity,
-          // stats: u.???,
-          // tags: u.???,
+          abilities: u.skills.map((e): Ability => {
+            return { name: e.nameKey, tier: e.tier, isZeta: e.isZeta };
+          }),
         };
       }
       return player;

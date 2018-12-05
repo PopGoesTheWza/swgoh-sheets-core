@@ -2,16 +2,8 @@
   // list all files to process for .d.ts declarations
   "files": [
     "src/Code.ts",
-    "src/Settings.ts",
-    // "src/Ships.ts",
-    "src/Exclusions.ts",
-    "src/Units.ts",
-    "src/Battles.ts",
-    "src/Platoons.ts",
-    "src/Webhooks.ts",
-    "src/Micromanage.ts",
+    "src/SwgohSheetsCore.ts",
     "src/lib.ts",
-    // "src/Scorpio.ts",
     "src/SwgohGg.ts",
     "src/SwgohHelp.ts"
   ],

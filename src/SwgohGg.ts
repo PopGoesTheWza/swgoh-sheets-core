@@ -19,6 +19,11 @@ namespace SwgohGg {
       level: number;
       power: number;
       rarity: number;
+      ability_data: {
+        is_zeta: boolean;
+        name: string;
+        ability_tier: number;
+      }[];
       stats: KeyedNumbers;
       url: string;
       zeta_abilities: string[];
@@ -29,12 +34,20 @@ namespace SwgohGg {
     ally_code: number;
     arena_leader_base_id: string;
     arena_rank: number;
-    character_galactic_power: number;
-    galactic_power: number;
     level: number;
     name: string;
-    ship_galactic_power: number;
     url: string;
+    galactic_power: number;
+    character_galactic_power: number;
+    ship_galactic_power: number;
+    ship_battles_won: number;
+    pvp_battles_won: number;
+    pve_battles_won: number;
+    pve_hard_won: number;
+    galactic_war_won: number;
+    guild_raid_won: number;
+    guild_contribution: number;
+    guild_exchange_donations: number;
   }
 
   interface SwgohGgUnitResponse {
@@ -163,13 +176,18 @@ namespace SwgohGg {
    * Units name and tags are not populated
    * returns Array of Guild members and their units data
    */
-  export function getGuildData(guildId: number): PlayerData[] {
+  export function getGuildData(guildId: number): GuildData {
 
     const json = requestApi<SwgohGgGuildResponse>(
       getGuildApiLink(guildId),
     );
     if (json && json.players) {
-      const members: PlayerData[] = [];
+      const guild: GuildData = {
+        id: guildId,
+        name: json.data.name,
+        members: [],
+      };
+      const members = guild.members;
       for (const member of json.players) {
         const unitArray: UnitInstances = {};
         for (const e of member.units) {
@@ -185,21 +203,31 @@ namespace SwgohGg {
             level: d.level,
             power: d.power,
             rarity: d.rarity,
+            abilities: d.ability_data.map((e): Ability => {
+              return { name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
+            }),
           };
         }
         members.push({
+          level: member.data.level,
+          allyCode: +member.data.url.match(/(\d+)/)[1],
+          name: member.data.name,
           gp: member.data.galactic_power,
           heroesGp: member.data.character_galactic_power,
-          level: member.data.level,  // TODO: store and process member level minimun requirement
-          allyCode: +member.data.url.match(/(\d+)/)[1],
-          // link: member.data.url,
-          name: member.data.name,
           shipsGp: member.data.ship_galactic_power,
+          fleetArenaBattlesWon: member.data.ship_battles_won,
+          squadArenaBattlesWon: member.data.pvp_battles_won,
+          normalBattlesWon: member.data.pve_battles_won,
+          hardBattlesWon: member.data.pve_hard_won,
+          galacticWarBattlesWon: member.data.galactic_war_won,
+          guildRaidsWon: member.data.guild_raid_won,
+          guildTokensEarned: member.data.guild_contribution,
+          gearDonatedInGuildExchange: member.data.guild_exchange_donations,
           units: unitArray,
         });
       }
 
-      return members;
+      return guild;
     }
 
     return undefined;
@@ -229,12 +257,20 @@ namespace SwgohGg {
       const data = json.data;
       const player: PlayerData = {
         allyCode: data.ally_code,
-        gp: data.galactic_power,
-        heroesGp: data.character_galactic_power,
         level: data.level,
         link: data.url,
         name: data.name,
+        gp: data.galactic_power,
+        heroesGp: data.character_galactic_power,
         shipsGp: data.ship_galactic_power,
+        fleetArenaBattlesWon: data.ship_battles_won,
+        squadArenaBattlesWon: data.pvp_battles_won,
+        normalBattlesWon: data.pve_battles_won,
+        hardBattlesWon: data.pve_hard_won,
+        galacticWarBattlesWon: data.galactic_war_won,
+        guildRaidsWon: data.guild_raid_won,
+        guildTokensEarned: data.guild_contribution,
+        gearDonatedInGuildExchange: data.guild_exchange_donations,
         units: {},
       };
       const units = player.units;
@@ -251,6 +287,9 @@ namespace SwgohGg {
           level: d.level,
           power: d.power,
           rarity: d.rarity,
+          abilities: d.ability_data.map((e): Ability => {
+            return { name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
+          }),
         };
       }
 

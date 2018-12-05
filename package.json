@@ -1,7 +1,7 @@
 {
-  "name": "swgoh-tb-sheets",
+  "name": "swgoh-sheets-core",
   "version": "1.0.0",
-  "description": "SWGoH Territory Battles Spreadsheet",
+  "description": "SWGoH Spreadsheet Core",
   "author": {
     "name": "Guillaume Contesso",
     "email": "popgoesthewza@gmail.com",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PopGoesTheWza/swgoh-help-api.git"
+    "url": "git+https://github.com/PopGoesTheWza/swgoh-sheets-core"
   },
   "keywords": [
     "google-apps-script",
