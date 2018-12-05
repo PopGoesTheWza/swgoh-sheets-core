@@ -599,7 +599,7 @@ namespace Core {
 
       values.unshift(headers);
 
-      sheet.getRange(1, 1, values.length, headers.length)
+      sheet.clear().getRange(1, 1, values.length, headers.length)
         .setValues(values);
 
       const lastRow = sheet.getLastRow();

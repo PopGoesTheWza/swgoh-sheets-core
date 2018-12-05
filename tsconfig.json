@@ -2,8 +2,8 @@
   // list all files to process for .d.ts declarations
   "files": [
     "src/Code.ts",
-    "src/SwgohSheetsCore.ts",
     "src/lib.ts",
+    "src/SwgohSheetsCore.ts",
     "src/SwgohGg.ts",
     "src/SwgohHelp.ts"
   ],

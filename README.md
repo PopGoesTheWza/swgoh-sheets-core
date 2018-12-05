@@ -1,12 +1,11 @@
-# SWGoH Territory Battles Sheets
+# SWGoH Sheets Core
 
 Google Apps Script SWGoH Territory Battles Google Spreadsheet
-- [Instructions Manual](https://docs.google.com/document/d/1InDnFdYdlRDpejeiFkGi6HxMEWmBbfX_wAvWRf1MCME/edit?usp=sharing)
-- [Spreadsheet template](https://docs.google.com/spreadsheets/d/17aFVEsOPe-HzoOZm0UizCSEbkc7fS_-4uCETRxkUxLw/edit?usp=sharing)
+- [Spreadsheet template](https://docs.google.com/spreadsheets/d/1T2OAvtxKVWAGliGC1wv7K6WZ6qkGdlNjIgc5dPHN0cs/edit?usp=sharing)
 
 ## Getting Started
           
-The `dist` directory contains the bundled code that is pushed as Google Apps Script into the Google speadsheet.
+The `dist` directory contains the TypeScript code which is transpiled into Google Apps Script.
 
 ## Build your own copy
 
