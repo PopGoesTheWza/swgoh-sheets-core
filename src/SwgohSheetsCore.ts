@@ -241,7 +241,7 @@ namespace Core {
     const rarIsFresh = isRARFresh();
     const guildsIsFresh = isGuildsFresh();
 
-    let staleGuilds = guildsIsFresh && credentialIsFresh && rarIsFresh ? [] : activeGuilds;
+    let staleGuilds = guildsIsFresh && credentialIsFresh && rarIsFresh ? undefined : activeGuilds;
 
     // let staleGuilds = activeGuilds.filter((e) => {
 
@@ -260,7 +260,7 @@ namespace Core {
 
     // });
 
-    if (staleGuilds.length > 0) {
+    if (staleGuilds) {
 
       staleGuilds = activeGuilds;  // TODO proper handling of stale
 
@@ -289,10 +289,10 @@ namespace Core {
   const renameAddRemove = (settings: GuildSettings[], datas: GuildData[]): void => {
     const rar = getRAR();
     for (const add of rar.add) {
+      const allyCode = add.allyCode;
       const guild = add.guild;
       const target = datas.find(e => e.name === guild);
       if (target) {
-        const allyCode = add.allyCode;
         // is in another guild?
         let found = false;
         for (const source of datas) {
@@ -306,12 +306,21 @@ namespace Core {
           }
         }
         if (!found) {
-          // TODO: complete Add feature
           // try to guess data source
-          // const setup = settings.find(e => e.guildId === target.id);
-          // const g = SwgohGg.getPlayerData(allyCode);
-          // const h = SwgohHelp.getPlayerData(allyCode);
+          const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
+          const player = useSwgohHelp
+            ? SwgohHelp.getPlayerData(allyCode)
+            : SwgohGg.getPlayerData(allyCode);
+          target.members.push(player);
         }
+      } if (guild === 'PLAYER') {
+        const target = { id: 0, name: guild, members: [] };
+        datas.push(target);
+        const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
+        const player = useSwgohHelp
+          ? SwgohHelp.getPlayerData(allyCode)
+          : SwgohGg.getPlayerData(allyCode);
+        target.members.push(player);
       }
     }
     for (const rename of rar.rename) {
@@ -456,15 +465,10 @@ namespace Core {
     const shipAbilities = config.shipAbilities();
     const heroes: any[][] = [];
     const ships: any[][] = [];
-    // const values: any[][] = [];
     const heroesAbilities = { count: 0, columns: 0 };
     const shipsAbilities = { count: 0, columns: 0 };
-    // let nAbilities = 0;
-    // let nColumns = 0;
     for (const data of datas) {
       if (data) {
-        // const guildId = data.id;
-        // const guildName = data.name;
         for (const member of data.members) {
           const units = member.units;
           for (const baseId in units) {
@@ -492,7 +496,6 @@ namespace Core {
                 unit.power,
               ];
               if (heroAbilities !== config.HERO_ABILITIES.NONE && type === Units.TYPES.HERO) {
-                // TODO: write abilites (enum UnitsAbilities)
                 if (heroAbilities === config.HERO_ABILITIES.ZETAS) {
                   let count = 0;
                   for (const ability of unit.abilities) {
@@ -525,8 +528,6 @@ namespace Core {
                   heroesAbilities.count = Math.max(unit.abilities.length, heroesAbilities.count);
                 }
                 heroesAbilities.columns = Math.max(columns.length, heroesAbilities.columns);
-                // nAbilities = Math.max(unit.abilities.length, nAbilities);
-                // nColumns = Math.max(columns.length, nColumns);
               } else if (shipAbilities && type === Units.TYPES.SHIP) {
                 // TODO: write abilites (enum UnitsAbilities)
                 for (const ability of unit.abilities) {
@@ -536,11 +537,8 @@ namespace Core {
                 }
                 shipsAbilities.count = Math.max(unit.abilities.length, shipsAbilities.count);
                 shipsAbilities.columns = Math.max(columns.length, shipsAbilities.columns);
-                // nAbilities = Math.max(unit.abilities.length, nAbilities);
-                // nColumns = Math.max(columns.length, nColumns);
               }
               (type === Units.TYPES.HERO ? heroes : ships).push(columns);
-              // values.push(columns);
             }
           }
         }
@@ -565,7 +563,6 @@ namespace Core {
       'level',
       'power',
     ];
-    // TODO: write abilites (enum UnitsAbilities)
     if (heroAbilities === config.HERO_ABILITIES.ZETAS) {
       for (let i = 0; i < heroesAbilities.count; i += 1) {
         heroesHeaders.push(`ability_${i}`);
@@ -587,12 +584,6 @@ namespace Core {
         shipsHeaders.push(`tier_${i}`);
       }
     }
-    // for (let i = 0; i < nAbilities; i += 1) {
-    //   headers.push(`ability_${i}`);
-    //   headers.push(`type_${i}`);
-    //   headers.push(`isZeta_${i}`);
-    //   headers.push(`tier_${i}`);
-    // }
     Sheets.setValues(
       SPREADSHEET.getSheetByName(SHEETS.HEROES),
       heroes.map(e =>
@@ -609,12 +600,6 @@ namespace Core {
           : e),
       shipsHeaders,
     );
-    // Sheets.setValues(
-    //   SPREADSHEET.getSheetByName(SHEETS.UNITS),
-    //   values.map(e =>
-    //     e.length !== nColumns ? e.concat(Array(nColumns).fill(null)).slice(0, nColumns) : e),
-    //   headers,
-    // );
   };
 
   type GuildSettings = {
@@ -780,6 +765,8 @@ namespace Core {
             }
             if (guild.length > 0) {
               acc.add.push({ guild, allyCode: add });
+            } else {
+              acc.add.push({ guild: 'PLAYER', allyCode: add });
             }
           }
           if (remove > 0) {
