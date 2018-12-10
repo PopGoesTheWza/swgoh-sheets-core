@@ -584,6 +584,7 @@ namespace Core {
         shipsHeaders.push(`tier_${i}`);
       }
     }
+    heroesAbilities.columns = Math.max(heroesHeaders.length, heroesAbilities.columns);
     Sheets.setValues(
       SPREADSHEET.getSheetByName(SHEETS.HEROES),
       heroes.map(e =>
@@ -592,6 +593,7 @@ namespace Core {
           : e),
       heroesHeaders,
     );
+    shipsAbilities.columns = Math.max(shipsHeaders.length, shipsAbilities.columns);
     Sheets.setValues(
       SPREADSHEET.getSheetByName(SHEETS.SHIPS),
       ships.map(e =>
