@@ -121,19 +121,13 @@ namespace SwgohGg {
    */
   export function getHeroList(): UnitDefinition[] {
 
-    const json = requestApi<SwgohGgUnitResponse[]>(
-      'https://swgoh.gg/api/characters/',
-    );
+    const json = requestApi<SwgohGgUnitResponse[]>('https://swgoh.gg/api/characters/');
     const mapping = (e: SwgohGgUnitResponse) => {
       const tags = [e.alignment, e.role, ...e.categories]
-        .join(' ')
+        .join(' ')  // TODO separator
         .toLowerCase();
-      const unit: UnitDefinition = {
-        tags,
-        baseId: e.base_id,
-        name: e.name,
-      };
-      return unit;
+
+      return { tags, baseId: e.base_id, name: e.name };
     };
 
     return json.map(mapping);
@@ -145,19 +139,13 @@ namespace SwgohGg {
    */
   export function getShipList(): UnitDefinition[] {
 
-    const json = requestApi<SwgohGgUnitResponse[]>(
-      'https://swgoh.gg/api/ships/',
-    );
+    const json = requestApi<SwgohGgUnitResponse[]>('https://swgoh.gg/api/ships/');
     const mapping = (e: SwgohGgUnitResponse) => {
       const tags = [e.alignment, e.role, ...e.categories]
-        .join(' ')
+        .join(' ')  // TODO separator
         .toLowerCase();
-      const unit: UnitDefinition = {
-        tags,
-        baseId: e.base_id,
-        name: e.name,
-      };
-      return unit;
+
+      return { tags, baseId: e.base_id, name: e.name };
     };
 
     return json.map(mapping);
@@ -165,11 +153,8 @@ namespace SwgohGg {
 
   /** Create guild API link */
   function getGuildApiLink(guildId: number): string {
-
-    const link = `https://swgoh.gg/api/guild/${guildId}/`;
-
     // TODO: data check
-    return link;
+    return `https://swgoh.gg/api/guild/${guildId}/`;
   }
 
   /**
@@ -179,9 +164,7 @@ namespace SwgohGg {
    */
   export function getGuildData(guildId: number): GuildData {
 
-    const json = requestApi<SwgohGgGuildResponse>(
-      getGuildApiLink(guildId),
-    );
+    const json = requestApi<SwgohGgGuildResponse>(getGuildApiLink(guildId));
     if (json && json.players) {
       const guild: GuildData = {
         id: guildId,
@@ -206,6 +189,7 @@ namespace SwgohGg {
             rarity: d.rarity,
             abilities: d.ability_data.map((e): Ability => {
               const type = e.id.match(/^([^_]+)/)[1];
+
               return { type, name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
             }),
           };
@@ -237,11 +221,8 @@ namespace SwgohGg {
 
   /** Create player API link */
   function getPlayerApiLink(allyCode: number): string {
-
-    const link = `https://swgoh.gg/api/player/${allyCode}/`;
-
     // TODO: data check
-    return link;
+    return `https://swgoh.gg/api/player/${allyCode}/`;
   }
 
   /**
@@ -251,9 +232,7 @@ namespace SwgohGg {
    */
   export function getPlayerData(allyCode: number): PlayerData {
 
-    const json = requestApi<SwgohGgPlayerResponse>(
-      getPlayerApiLink(allyCode),
-    );
+    const json = requestApi<SwgohGgPlayerResponse>(getPlayerApiLink(allyCode));
 
     if (json && json.data) {
       const data = json.data;
@@ -291,6 +270,7 @@ namespace SwgohGg {
           rarity: d.rarity,
           abilities: d.ability_data.map((e): Ability => {
             const type = e.id.match(/^([^_]+)/)[1];
+
             return { type, name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
           }),
         };
