@@ -46,7 +46,7 @@ namespace SwgohHelp {
   /** check if swgohhelpapi api is installed */
   function checkLibrary(): boolean {
 
-    const result = Boolean(swgohhelpapi);
+    const result = !!swgohhelpapi;
     if (!result) {
       const UI = SpreadsheetApp.getUi();
       UI.alert(
@@ -123,7 +123,7 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
           const definition: UnitDefinition = {
             baseId: e.baseId,
             name: e.nameKey,
-            tags: tags.unique().join(' '),
+            tags: tags.unique().join(' '),  // TODO separator
           };
           bucket.push(definition);
           return acc;
