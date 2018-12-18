@@ -200,7 +200,7 @@ namespace config {
         .getRange(15, 9)
         .getValue() as string;
 
-      return result;
+      return result.trim();
     }
 
     /** Get the SwgohHelp API password */
@@ -292,6 +292,7 @@ namespace Core {
       const allyCode = add.allyCode;
       const guild = add.guild;
       const target = datas.find(e => e.name === guild);
+      // const { allyCode, guild } = add;
       if (target) {
         // is in another guild?
         let found = false;
@@ -815,21 +816,21 @@ namespace Core {
 
     export const setValues = (sheet: GoogleAppsScript.Spreadsheet.Sheet, values, headers) => {
 
+      let  last: number;
+      let max: number;
       values.unshift(headers);
 
       sheet.clear().getRange(1, 1, values.length, headers.length)
         .setValues(values);
 
-      const lastRow = sheet.getLastRow();
-      const maxRows = sheet.getMaxRows();
-      if (maxRows > lastRow) {
-        sheet.deleteRows(lastRow + 1, maxRows - lastRow);
+      [last, max] = [sheet.getLastColumn(), sheet.getMaxColumns()];
+      if (max > last) {
+        sheet.deleteRows(last + 1, max - last);
       }
 
-      const lastCol = sheet.getLastColumn();
-      const maxcols = sheet.getMaxColumns();
-      if (maxcols > lastCol) {
-        sheet.deleteColumns(lastCol + 1, maxcols - lastCol);
+      [last, max] = [sheet.getLastColumn(), sheet.getMaxColumns()];
+      if (max > last) {
+        sheet.deleteColumns(last + 1, max - last);
       }
     };
 
