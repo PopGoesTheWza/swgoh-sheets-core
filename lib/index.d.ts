@@ -249,7 +249,7 @@ export namespace  swgohhelpapi {
       updated?: boolean;
       stats?: boolean;
       roster?: any;  // boolean;
-      arena?: boolean;
+      arena?: any;  // boolean;
     };
     /** Response from PlayerRequest */
     export interface PlayerResponse {
@@ -265,8 +265,8 @@ export namespace  swgohhelpapi {
       stats?: PlayerStats[];
       roster?: Roster[];
       arena?: {
-          char: Arena[];
-          ship: Arena[];
+          char: Arena;
+          ship: Arena;
       };
     }
     /** Optional projection of GuildResponse properties (first layer) you want returned */
