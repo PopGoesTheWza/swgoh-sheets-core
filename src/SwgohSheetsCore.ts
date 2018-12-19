@@ -43,7 +43,9 @@ interface PlayerData {
   gp: number;
   heroesGp: number;
   shipsGp: number;
+  fleetArenaRank: number;
   fleetArenaBattlesWon: number;
+  squadArenaRank: number;
   squadArenaBattlesWon: number;
   normalBattlesWon: number;
   hardBattlesWon: number;
@@ -401,7 +403,9 @@ namespace Core {
           }
           if (addBattles) {
             columns = columns.concat([
+              member.fleetArenaRank,
               member.fleetArenaBattlesWon,
+              member.squadArenaRank,
               member.squadArenaBattlesWon,
               member.normalBattlesWon,
               member.hardBattlesWon,
@@ -436,7 +440,9 @@ namespace Core {
     }
     if (addBattles) {
       headers = headers.concat([
+        'fleetArenaRank',
         'fleetArenaBattlesWon',
+        'squadArenaRank',
         'squadArenaBattlesWon',
         'normalBattlesWon',
         'hardBattlesWon',

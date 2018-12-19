@@ -201,7 +201,9 @@ namespace SwgohGg {
           gp: member.data.galactic_power,
           heroesGp: member.data.character_galactic_power,
           shipsGp: member.data.ship_galactic_power,
+          fleetArenaRank: undefined,  // TODO
           fleetArenaBattlesWon: member.data.ship_battles_won,
+          squadArenaRank: member.data.arena_rank,
           squadArenaBattlesWon: member.data.pvp_battles_won,
           normalBattlesWon: member.data.pve_battles_won,
           hardBattlesWon: member.data.pve_hard_won,
@@ -244,7 +246,9 @@ namespace SwgohGg {
         gp: data.galactic_power,
         heroesGp: data.character_galactic_power,
         shipsGp: data.ship_galactic_power,
+        fleetArenaRank: undefined,  // TODO
         fleetArenaBattlesWon: data.ship_battles_won,
+        squadArenaRank: data.arena_rank,
         squadArenaBattlesWon: data.pvp_battles_won,
         normalBattlesWon: data.pve_battles_won,
         hardBattlesWon: data.pve_hard_won,
