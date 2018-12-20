@@ -190,7 +190,7 @@ namespace config {
   export function shipAbilities(): boolean {
 
     const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(21, 9)
+      .getRange(26, 9)
       .getValue() as string;
 
     return result === 'ON';
@@ -467,6 +467,20 @@ namespace Core {
     );
   };
 
+  const abilityTypeOrder = [
+    'hardwareskill',
+    'contractskill',
+    'uniqueskill',
+    'leaderskill',
+    'specialskill',
+    'basicskill',
+  ];
+
+  const sortAbilities = (a: Ability, b: Ability): number => {
+    const types =  abilityTypeOrder.indexOf(b.type) - abilityTypeOrder.indexOf(a.type);
+    return types === 0 ? a.name.localeCompare(b.name) : types;
+  };
+
   const writeUnits = (datas: GuildData[], baseUnits: UnitDefinition[]): void => {
     // TODO: use distinct sheet for base unit data (tags, abilities...)
     const unitTypes = config.unitTypes();
@@ -485,6 +499,8 @@ namespace Core {
           for (const baseId in units) {
             const def = baseUnits.find(e => e.baseId === baseId);
             const unit = units[baseId];
+            // sort abilities
+            unit.abilities = unit.abilities.sort(sortAbilities);
             if (!def.abilities) {
               def.abilities = unit.abilities;
             }
