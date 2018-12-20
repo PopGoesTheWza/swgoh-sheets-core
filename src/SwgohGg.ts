@@ -33,8 +33,19 @@ namespace SwgohGg {
 
   interface SwgohGgPlayerData {
     ally_code: number;
-    arena_leader_base_id: string;
-    arena_rank: number;
+    arena: {
+      members: string[];
+      leader: string;
+      rank: number;
+    };
+    fleet_arena: {
+      members: string[];
+      reinforcements: string[];
+      leader: string;
+      rank: number;
+    };
+    // arena_leader_base_id: string;
+    // arena_rank: number;
     level: number;
     name: string;
     url: string;
@@ -201,9 +212,9 @@ namespace SwgohGg {
           gp: member.data.galactic_power,
           heroesGp: member.data.character_galactic_power,
           shipsGp: member.data.ship_galactic_power,
-          fleetArenaRank: undefined,  // TODO
+          fleetArenaRank: member.data.fleet_arena.rank,
           fleetArenaBattlesWon: member.data.ship_battles_won,
-          squadArenaRank: member.data.arena_rank,
+          squadArenaRank: member.data.arena.rank,
           squadArenaBattlesWon: member.data.pvp_battles_won,
           normalBattlesWon: member.data.pve_battles_won,
           hardBattlesWon: member.data.pve_hard_won,
@@ -246,9 +257,9 @@ namespace SwgohGg {
         gp: data.galactic_power,
         heroesGp: data.character_galactic_power,
         shipsGp: data.ship_galactic_power,
-        fleetArenaRank: undefined,  // TODO
+        fleetArenaRank: data.fleet_arena.rank,
         fleetArenaBattlesWon: data.ship_battles_won,
-        squadArenaRank: data.arena_rank,
+        squadArenaRank: data.arena.rank,
         squadArenaBattlesWon: data.pvp_battles_won,
         normalBattlesWon: data.pve_battles_won,
         hardBattlesWon: data.pve_hard_won,
