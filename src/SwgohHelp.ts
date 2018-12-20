@@ -7,6 +7,7 @@ namespace SwgohHelp {
   enum categoryId {
     alignment_dark = 'dark side',
     alignment_light = 'light side',
+    alignment_neutral = 'neutral',  // TODO check when actually used ingame
 
     role_attacker = 'attacker',
     role_capital = 'capital ship',
@@ -105,25 +106,36 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
             ? acc.heroes
             : acc.ships;
           const tags = e.categoryIdList.reduce(
-            (a: [string], c) => {
+            (a, c) => {
               const tag = categoryId[c];
               if (tag) {
-                a.push(tag);
+                if (c.indexOf('alignment_')) {
+                  a.alignment = tag;
+                } else if (c.indexOf('role_')) {
+                  a.role = tag;
+                } else {
+                  a.tags.push(tag);
+                }
               }
               return a;
             },
-            [],
+            {
+              alignment: undefined as string,
+              role: undefined as string,
+              tags: [] as string[],
+            },
           );
-          const alignment = e.forceAlignment === 2
-            ? categoryId.alignment_light
-            : (e.forceAlignment === 3 ? categoryId.alignment_dark : undefined);
+          const alignment = e.forceAlignment === 2 ? categoryId.alignment_light
+            : (e.forceAlignment === 3 ? categoryId.alignment_dark : categoryId.alignment_neutral);
           if (alignment) {
-            tags.unshift(alignment);
+            tags.alignment = alignment;
           }
           const definition: UnitDefinition = {
             baseId: e.baseId,
             name: e.nameKey,
-            tags: tags.unique().join(' '),  // TODO separator
+            alignment: tags.alignment,
+            role: tags.role,
+            tags: tags.tags,
           };
           bucket.push(definition);
           return acc;
@@ -216,6 +228,7 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
             // guildName: true,
             level: true,
             name: true,
+            stats: true,
             roster: {
               combatType: true,
               defId: true,
@@ -227,8 +240,15 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
               // TODO: on demand
               skills: { id: true, tier: true, nameKey: true, isZeta: true },
             },
-            stats: true,
-            // updated: true,
+            arena: {
+              char: {
+                rank: true,
+              },
+              ship: {
+                rank: true,
+              },
+            },
+                // updated: true,
           },
         });
 
