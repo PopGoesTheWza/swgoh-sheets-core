@@ -134,11 +134,17 @@ namespace SwgohGg {
 
     const json = requestApi<SwgohGgUnitResponse[]>('https://swgoh.gg/api/characters/');
     const mapping = (e: SwgohGgUnitResponse) => {
-      const tags = [e.alignment, e.role, ...e.categories]
-        .join(' ')  // TODO separator
-        .toLowerCase();
+      // const tags = [e.alignment, e.role, ...e.categories]
+      //   .join(' ')
+      //   .toLowerCase();
 
-      return { tags, baseId: e.base_id, name: e.name };
+      return {
+        baseId: e.base_id,
+        name: e.name,
+        alignment: e.alignment.toLowerCase(),
+        role: e.role.toLowerCase(),
+        tags: e.categories.map(e => e.toLowerCase()),
+      };
     };
 
     return json.map(mapping);
@@ -152,11 +158,17 @@ namespace SwgohGg {
 
     const json = requestApi<SwgohGgUnitResponse[]>('https://swgoh.gg/api/ships/');
     const mapping = (e: SwgohGgUnitResponse) => {
-      const tags = [e.alignment, e.role, ...e.categories]
-        .join(' ')  // TODO separator
-        .toLowerCase();
+      // const tags = [e.alignment, e.role, ...e.categories]
+      //   .join(' ')
+      //   .toLowerCase();
 
-      return { tags, baseId: e.base_id, name: e.name };
+      return {
+        baseId: e.base_id,
+        name: e.name,
+        alignment: e.alignment.toLowerCase(),
+        role: e.role.toLowerCase(),
+        tags: e.categories.map(e => e.toLowerCase()),
+      };
     };
 
     return json.map(mapping);
@@ -212,9 +224,11 @@ namespace SwgohGg {
           gp: member.data.galactic_power,
           heroesGp: member.data.character_galactic_power,
           shipsGp: member.data.ship_galactic_power,
-          fleetArenaRank: member.data.fleet_arena.rank,
+          fleetArenaRank: member.data.fleet_arena
+            ? member.data.fleet_arena.rank : undefined,
           fleetArenaBattlesWon: member.data.ship_battles_won,
-          squadArenaRank: member.data.arena.rank,
+          squadArenaRank: member.data.arena
+            ? member.data.arena.rank : undefined,
           squadArenaBattlesWon: member.data.pvp_battles_won,
           normalBattlesWon: member.data.pve_battles_won,
           hardBattlesWon: member.data.pve_hard_won,
@@ -257,9 +271,11 @@ namespace SwgohGg {
         gp: data.galactic_power,
         heroesGp: data.character_galactic_power,
         shipsGp: data.ship_galactic_power,
-        fleetArenaRank: data.fleet_arena.rank,
+        fleetArenaRank: data.fleet_arena
+          ? data.fleet_arena.rank : undefined,
         fleetArenaBattlesWon: data.ship_battles_won,
-        squadArenaRank: data.arena.rank,
+        squadArenaRank: data.arena
+          ? data.arena.rank : undefined,
         squadArenaBattlesWon: data.pvp_battles_won,
         normalBattlesWon: data.pve_battles_won,
         hardBattlesWon: data.pve_hard_won,
