@@ -67,8 +67,11 @@ interface UnitDefinition {
   baseId: string;
   name: string;
   /** Alignment, role and tags */
-  tags: string;
+  alignment: string;
+  role: string;
+  tags: string[];
   type?: number;
+  abilities?: Ability[];
 }
 
 type Ability = {
@@ -111,6 +114,7 @@ enum DATASOURCES {
 enum SHEETS {
   SETUP = 'coreSetup',
   MEMBERS = 'coreRoster',
+  UNITS = 'coreUnits',
   HEROES = 'coreHeroes',
   SHIPS = 'coreShips',
   // UNITS = 'coreUnits',
@@ -481,14 +485,20 @@ namespace Core {
           for (const baseId in units) {
             const def = baseUnits.find(e => e.baseId === baseId);
             const unit = units[baseId];
+            if (!def.abilities) {
+              def.abilities = unit.abilities;
+            }
             const type = unit.type;
+            if (!def.type) {
+              def.type = type;
+            }
             if ((addHeroes && type === Units.TYPES.HERO)
               || (addShips && type === Units.TYPES.SHIP)) {
               const columns = type === Units.TYPES.HERO ? [
                 member.name,
                 member.allyCode,
                 def.name,
-                def.tags,
+                // def.tags,
                 unit.rarity,
                 unit.level,
                 unit.gearLevel,
@@ -497,7 +507,7 @@ namespace Core {
                 member.name,
                 member.allyCode,
                 def.name,
-                def.tags,
+                // def.tags,
                 unit.rarity,
                 unit.level,
                 unit.power,
@@ -555,7 +565,7 @@ namespace Core {
       'name',
       'allyCode',
       'unit',
-      'tags',
+      // 'tags',
       'rarity',
       'level',
       'gearLevel',
@@ -565,7 +575,7 @@ namespace Core {
       'name',
       'allyCode',
       'unit',
-      'tags',
+      // 'tags',
       'rarity',
       'level',
       'power',
@@ -591,6 +601,55 @@ namespace Core {
         shipsHeaders.push(`tier_${i}`);
       }
     }
+    const counts = baseUnits.reduce(
+      (acc, e) => {
+        // acc.tags = Math.max(acc.tags, e.tags.length);
+        acc.abilities = Math.max(acc.abilities, e.abilities.length);
+        return acc;
+      },
+      { tags: 0, abilities: 0 },
+    );
+    const unitsHeaders = [
+      'name',
+      'baseId',
+      'type',
+      'alignment',
+      'role',
+      'tags',
+    ];
+    if (counts.tags) {
+      for (let i = 0; i < counts.tags; i += 1) {
+        unitsHeaders.push(`tag_${i}`);
+      }
+    }
+    if (counts.abilities) {
+      for (let i = 0; i < counts.abilities; i += 1) {
+        unitsHeaders.push(`ability_${i}`);
+        unitsHeaders.push(`type_${i}`);
+        unitsHeaders.push(`isZeta_${i}`);
+      }
+    }
+    const commonUnits = baseUnits.map(e => [
+      e.name,
+      e.baseId,
+      e.type,
+      e.alignment,
+      e.role,
+      e.tags.join(','),
+    ]
+    .concat(e.abilities.reduce(
+      (acc, e) => acc.concat([e.name, e.type, e.isZeta]),
+      [],
+    )));
+    counts.abilities = Math.max(unitsHeaders.length, counts.abilities);
+    Sheets.setValues(
+      SPREADSHEET.getSheetByName(SHEETS.UNITS),
+      commonUnits.map(e =>
+        e.length !== counts.abilities
+          ? e.concat(Array(counts.abilities).fill(null)).slice(0, counts.abilities)
+          : e),
+      unitsHeaders,
+    );
     heroesAbilities.columns = Math.max(heroesHeaders.length, heroesAbilities.columns);
     Sheets.setValues(
       SPREADSHEET.getSheetByName(SHEETS.HEROES),
