@@ -21,7 +21,9 @@ declare namespace SwgohHelp {
 /** Shortcuts for Google Apps Script classes */
 const SPREADSHEET = SpreadsheetApp.getActive();
 
-type URLFetchRequestOptions = GoogleAppsScript.URL_Fetch.URLFetchRequestOptions;
+import Spreadsheet = GoogleAppsScript.Spreadsheet;
+import URL_Fetch = GoogleAppsScript.URL_Fetch;
+// type URLFetchRequestOptions = GoogleAppsScript.URL_Fetch.URLFetchRequestOptions;
 
 type KeyedType<T> = {
   [key: string]: T;
@@ -74,6 +76,14 @@ interface UnitDefinition {
   abilities?: Ability[];
 }
 
+interface AbilityDefinition {
+  baseId: string;
+  name: string;
+  type: string;
+  tierMax: number;
+  isZeta: boolean;
+}
+
 type Ability = {
   name: string;
   type: string;
@@ -115,6 +125,7 @@ enum SHEETS {
   SETUP = 'coreSetup',
   MEMBERS = 'coreRoster',
   UNITS = 'coreUnits',
+  ABILITIES = 'coreAbilities',
   HEROES = 'coreHeroes',
   SHIPS = 'coreShips',
   // UNITS = 'coreUnits',
@@ -271,11 +282,14 @@ namespace Core {
       staleGuilds = activeGuilds;  // TODO proper handling of stale
 
       const baseUnits = getBaseUnits();
+      const baseAbilities = getBaseAbilities();
       const datas = staleGuilds.map(e => getGuildData(e));
       renameAddRemove(staleGuilds, datas);
       setGuildNames(staleGuilds, datas);
       writeGuildNames(activeGuilds);
       writeRoster(datas);
+      writeBaseUnits(baseUnits);
+      writeBaseAbilities(baseAbilities);
       writeUnits(datas, baseUnits);
       refreshGuilds();
       refreshCredential();
@@ -399,29 +413,34 @@ namespace Core {
             member.level,
           ];
           if (addGP) {
-            columns = columns.concat([
-              member.gp,
-              member.heroesGp,
-              member.shipsGp,
-            ]);
+            columns = [
+              ...columns, ...[
+                member.gp,
+                member.heroesGp,
+                member.shipsGp,
+              ]];
           }
           if (addBattles) {
-            columns = columns.concat([
-              member.fleetArenaRank,
-              member.fleetArenaBattlesWon,
-              member.squadArenaRank,
-              member.squadArenaBattlesWon,
-              member.normalBattlesWon,
-              member.hardBattlesWon,
-              member.galacticWarBattlesWon,
-            ]);
+            columns = [
+              ...columns,
+              ...[
+                member.fleetArenaRank,
+                member.fleetArenaBattlesWon,
+                member.squadArenaRank,
+                member.squadArenaBattlesWon,
+                member.normalBattlesWon,
+                member.hardBattlesWon,
+                member.galacticWarBattlesWon,
+              ]];
           }
           if (addActivities) {
-            columns = columns.concat([
-              member.guildRaidsWon,
-              member.guildTokensEarned,
-              member.gearDonatedInGuildExchange,
-            ]);
+            columns = [
+              ...columns,
+              ...[
+                member.guildRaidsWon,
+                member.guildTokensEarned,
+                member.gearDonatedInGuildExchange,
+              ]];
           }
           values.push(columns);
         }
@@ -436,29 +455,32 @@ namespace Core {
     ];
 
     if (addGP) {
-      headers = headers.concat([
-        'gp',
-        'heroesGp',
-        'shipsGp',
-      ]);
+      headers = [...headers,
+        ...[
+          'gp',
+          'heroesGp',
+          'shipsGp',
+        ]];
     }
     if (addBattles) {
-      headers = headers.concat([
-        'fleetArenaRank',
-        'fleetArenaBattlesWon',
-        'squadArenaRank',
-        'squadArenaBattlesWon',
-        'normalBattlesWon',
-        'hardBattlesWon',
-        'galacticWarBattlesWon',
-      ]);
+      headers = [...headers,
+        ...[
+          'fleetArenaRank',
+          'fleetArenaBattlesWon',
+          'squadArenaRank',
+          'squadArenaBattlesWon',
+          'normalBattlesWon',
+          'hardBattlesWon',
+          'galacticWarBattlesWon',
+        ]];
     }
     if (addActivities) {
-      headers = headers.concat([
-        'guildRaidsWon',
-        'guildTokensEarned',
-        'gearDonatedInGuildExchange',
-      ]);
+      headers = [...headers,
+        ...[
+          'guildRaidsWon',
+          'guildTokensEarned',
+          'gearDonatedInGuildExchange',
+        ]];
     }
     Sheets.setValues(
       SPREADSHEET.getSheetByName(SHEETS.MEMBERS),
@@ -479,6 +501,31 @@ namespace Core {
   const sortAbilities = (a: Ability, b: Ability): number => {
     const types =  abilityTypeOrder.indexOf(b.type) - abilityTypeOrder.indexOf(a.type);
     return types === 0 ? a.name.localeCompare(b.name) : types;
+  };
+
+  const writeBaseUnits = (baseUnits: UnitDefinition[]): void => {
+    const headers = ['name', 'baseId', 'type', 'alignment', 'role', 'tags'];
+    const data = baseUnits.map(e => [
+      e.name,
+      e.baseId,
+      e.type,
+      e.alignment,
+      e.role,
+      e.tags.join(','),
+    ]);
+    Sheets.setValues(SPREADSHEET.getSheetByName(SHEETS.UNITS), data, headers);
+  };
+
+  const writeBaseAbilities = (baseAbilities: AbilityDefinition[]): void => {
+    const headers = ['baseId', 'name', 'type', 'tierMax', 'isZeta'];
+    const data = baseAbilities.map(e => [
+      e.baseId,
+      e.name,
+      e.type,
+      e.tierMax,
+      e.isZeta,
+    ]);
+    Sheets.setValues(SPREADSHEET.getSheetByName(SHEETS.ABILITIES), data, headers);
   };
 
   const writeUnits = (datas: GuildData[], baseUnits: UnitDefinition[]): void => {
@@ -620,7 +667,7 @@ namespace Core {
     const counts = baseUnits.reduce(
       (acc, e) => {
         // acc.tags = Math.max(acc.tags, e.tags.length);
-        acc.abilities = Math.max(acc.abilities, e.abilities.length);
+        acc.abilities = Math.max(acc.abilities, e.abilities ? e.abilities.length : 0);
         return acc;
       },
       { tags: 0, abilities: 0 },
@@ -645,33 +692,12 @@ namespace Core {
         unitsHeaders.push(`isZeta_${i}`);
       }
     }
-    const commonUnits = baseUnits.map(e => [
-      e.name,
-      e.baseId,
-      e.type,
-      e.alignment,
-      e.role,
-      e.tags.join(','),
-    ]
-    .concat(e.abilities.reduce(
-      (acc, e) => acc.concat([e.name, e.type, e.isZeta]),
-      [],
-    )));
-    counts.abilities = Math.max(unitsHeaders.length, counts.abilities);
-    Sheets.setValues(
-      SPREADSHEET.getSheetByName(SHEETS.UNITS),
-      commonUnits.map(e =>
-        e.length !== counts.abilities
-          ? e.concat(Array(counts.abilities).fill(null)).slice(0, counts.abilities)
-          : e),
-      unitsHeaders,
-    );
     heroesAbilities.columns = Math.max(heroesHeaders.length, heroesAbilities.columns);
     Sheets.setValues(
       SPREADSHEET.getSheetByName(SHEETS.HEROES),
       heroes.map(e =>
         e.length !== heroesAbilities.columns
-          ? e.concat(Array(heroesAbilities.columns).fill(null)).slice(0, heroesAbilities.columns)
+          ? [...e, ...Array(heroesAbilities.columns).fill(null)].slice(0, heroesAbilities.columns)
           : e),
       heroesHeaders,
     );
@@ -680,7 +706,7 @@ namespace Core {
       SPREADSHEET.getSheetByName(SHEETS.SHIPS),
       ships.map(e =>
         e.length !== shipsAbilities.columns
-          ? e.concat(Array(shipsAbilities.columns).fill(null)).slice(0, shipsAbilities.columns)
+          ? [...e, ...Array(shipsAbilities.columns).fill(null)].slice(0, shipsAbilities.columns)
           : e),
       shipsHeaders,
     );
@@ -719,7 +745,11 @@ namespace Core {
   };
 
   const getBaseUnits = (): UnitDefinition[] => {
-    return SwgohGg.getHeroList().concat(SwgohGg.getShipList());
+    return [...SwgohGg.getHeroList(), ...SwgohGg.getShipList()];
+  };
+
+  const getBaseAbilities = (): AbilityDefinition[] => {
+    return SwgohGg.getAbilityList();
   };
 
   const getGuildData = (guild: GuildSettings): GuildData => {
@@ -780,9 +810,11 @@ namespace Core {
 
     const sheet = SPREADSHEET.getSheetByName(SHEETS.SETUP);
 
-    const credential = sheet.getRange(15, 9, 2).getValues().concat(
-      sheet.getRange(19, 9, 3).getValues(),
-      sheet.getRange(24, 9, 3).getValues());
+    const credential = [
+      ...sheet.getRange(15, 9, 2).getValues(),
+      ...sheet.getRange(19, 9, 3).getValues(),
+      ...sheet.getRange(24, 9, 3).getValues(),
+    ];
 
     return String(Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256,
@@ -895,7 +927,7 @@ namespace Core {
 
   namespace Sheets {
 
-    export const setValues = (sheet: GoogleAppsScript.Spreadsheet.Sheet, values, headers) => {
+    export const setValues = (sheet: Spreadsheet.Sheet, values, headers) => {
 
       let  last: number;
       let max: number;
