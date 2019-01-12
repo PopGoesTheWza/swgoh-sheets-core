@@ -62,6 +62,19 @@ namespace SwgohGg {
     guild_exchange_donations: number;
   }
 
+  interface SwgohGgAbilityResponse {
+    base_id: string;
+    name: string;
+    image: string;
+    url: string;
+    tier_max: number;
+    is_zeta: boolean;
+    is_omega: boolean;
+    combat_type: number;
+    type: number;
+    character_base_id: string;
+  }
+
   interface SwgohGgUnitResponse {
     ability_classes: string[];
     alignment: string;
@@ -111,7 +124,7 @@ namespace SwgohGg {
 
     let json;
     try {
-      const params: URLFetchRequestOptions = {
+      const params: URL_Fetch.URLFetchRequestOptions = {
         // followRedirects: true,
         muteHttpExceptions: true,
       };
@@ -144,6 +157,29 @@ namespace SwgohGg {
         alignment: e.alignment.toLowerCase(),
         role: e.role.toLowerCase(),
         tags: e.categories.map(e => e.toLowerCase()),
+        abilities: [],
+      };
+    };
+
+    return json.map(mapping);
+  }
+
+  /**
+   * Pull base Ability data from SwgohGg
+   * returns Array of Abilites with [tags, baseId, name]
+   */
+  export function getAbilityList(): AbilityDefinition[] {
+
+    const json = requestApi<SwgohGgAbilityResponse[]>('https://swgoh.gg/api/abilities/');
+    const mapping = (e: SwgohGgAbilityResponse): AbilityDefinition => {
+
+      return {
+        // baseId: e.base_id,
+        baseId: e.character_base_id,
+        name: e.name,
+        type: e.base_id.match(/^([^_]+)/)[1],
+        tierMax: e.tier_max,
+        isZeta: e.is_zeta,
       };
     };
 
@@ -168,6 +204,7 @@ namespace SwgohGg {
         alignment: e.alignment.toLowerCase(),
         role: e.role.toLowerCase(),
         tags: e.categories.map(e => e.toLowerCase()),
+        // abilities: [],
       };
     };
 
