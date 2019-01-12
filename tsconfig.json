@@ -9,8 +9,8 @@
   ],
   "compilerOptions": {
     // only emit .d.ts
-    "emitDeclarationOnly": true,
-    "declaration": true,
+    "emitDeclarationOnly": false,
+    "declaration": false,
     
     "noEmitOnError": true,
     "outDir": "dist",
