@@ -251,6 +251,38 @@ namespace Core {
     ALL = 'All',
   }
 
+  const fixBaseAbilities = (baseAbilities: AbilityDefinition[], datas: GuildData[]) => {
+    const toFix = baseAbilities.filter(e => !e.baseId);
+    for (const incomplete of toFix) {
+      let baseId: string = undefined;
+      for (const guild of datas) {
+        for (const member of guild.members) {
+          for (const key in member.units) {
+            const unit = member.units[key];
+            for (const ability of unit.abilities) {
+              if (
+                incomplete.name === ability.name
+                && incomplete.type === ability.type
+              ) {
+                baseId = unit.baseId;
+                break;
+              }
+            }
+            if (typeof baseId === 'string') {
+              break;
+            }
+          }
+          if (typeof baseId === 'string') {
+            break;
+          }
+        }
+      }
+      if (typeof baseId === 'string') {
+        incomplete.baseId = baseId;
+      }
+    }
+  };
+
   export const refreshData = (): void => {
 
     const activeGuilds = getActiveGuilds();
@@ -284,6 +316,7 @@ namespace Core {
       const baseUnits = getBaseUnits();
       const baseAbilities = getBaseAbilities();
       const datas = staleGuilds.map(e => getGuildData(e));
+      fixBaseAbilities(baseAbilities, datas);
       renameAddRemove(staleGuilds, datas);
       setGuildNames(staleGuilds, datas);
       writeGuildNames(activeGuilds);
