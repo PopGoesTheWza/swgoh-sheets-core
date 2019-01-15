@@ -152,12 +152,39 @@ namespace SwgohGg {
       //   .toLowerCase();
 
       return {
+        type: Units.TYPES.HERO,
         baseId: e.base_id,
         name: e.name,
         alignment: e.alignment.toLowerCase(),
         role: e.role.toLowerCase(),
         tags: e.categories.map(e => e.toLowerCase()),
         abilities: [],
+      };
+    };
+
+    return json.map(mapping);
+  }
+
+  /**
+   * Pull base Ship data from SwgohGg
+   * returns Array of Characters with [tags, baseId, name]
+   */
+  export function getShipList(): UnitDefinition[] {
+
+    const json = requestApi<SwgohGgUnitResponse[]>('https://swgoh.gg/api/ships/');
+    const mapping = (e: SwgohGgUnitResponse) => {
+      // const tags = [e.alignment, e.role, ...e.categories]
+      //   .join(' ')
+      //   .toLowerCase();
+
+      return {
+        type: Units.TYPES.SHIP,
+        baseId: e.base_id,
+        name: e.name,
+        alignment: e.alignment.toLowerCase(),
+        role: e.role.toLowerCase(),
+        tags: e.categories.map(e => e.toLowerCase()),
+        // abilities: [],
       };
     };
 
@@ -180,31 +207,6 @@ namespace SwgohGg {
         type: e.base_id.match(/^([^_]+)/)[1],
         tierMax: e.tier_max,
         isZeta: e.is_zeta,
-      };
-    };
-
-    return json.map(mapping);
-  }
-
-  /**
-   * Pull base Ship data from SwgohGg
-   * returns Array of Characters with [tags, baseId, name]
-   */
-  export function getShipList(): UnitDefinition[] {
-
-    const json = requestApi<SwgohGgUnitResponse[]>('https://swgoh.gg/api/ships/');
-    const mapping = (e: SwgohGgUnitResponse) => {
-      // const tags = [e.alignment, e.role, ...e.categories]
-      //   .join(' ')
-      //   .toLowerCase();
-
-      return {
-        baseId: e.base_id,
-        name: e.name,
-        alignment: e.alignment.toLowerCase(),
-        role: e.role.toLowerCase(),
-        tags: e.categories.map(e => e.toLowerCase()),
-        // abilities: [],
       };
     };
 
