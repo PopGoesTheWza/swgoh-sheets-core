@@ -251,38 +251,6 @@ namespace Core {
     ALL = 'All',
   }
 
-  const fixBaseAbilities = (baseAbilities: AbilityDefinition[], datas: GuildData[]) => {
-    const toFix = baseAbilities.filter(e => !e.baseId);
-    for (const incomplete of toFix) {
-      let baseId: string = undefined;
-      for (const guild of datas) {
-        for (const member of guild.members) {
-          for (const key in member.units) {
-            const unit = member.units[key];
-            for (const ability of unit.abilities) {
-              if (
-                incomplete.name === ability.name
-                && incomplete.type === ability.type
-              ) {
-                baseId = unit.baseId;
-                break;
-              }
-            }
-            if (typeof baseId === 'string') {
-              break;
-            }
-          }
-          if (typeof baseId === 'string') {
-            break;
-          }
-        }
-      }
-      if (typeof baseId === 'string') {
-        incomplete.baseId = baseId;
-      }
-    }
-  };
-
   export const refreshData = (): void => {
 
     const activeGuilds = getActiveGuilds();
@@ -316,7 +284,6 @@ namespace Core {
       const baseUnits = getBaseUnits();
       const baseAbilities = getBaseAbilities();
       const datas = staleGuilds.map(e => getGuildData(e));
-      fixBaseAbilities(baseAbilities, datas);
       renameAddRemove(staleGuilds, datas);
       setGuildNames(staleGuilds, datas);
       writeGuildNames(activeGuilds);
@@ -344,30 +311,25 @@ namespace Core {
     for (const add of rar.add) {
       const allyCode = add.allyCode;
       const guild = add.guild;
-      const target = datas.find(e => e.name === guild);
+      const isInGuild = datas.find(e => !!e.members.find(m => m.allyCode === allyCode));
+      const targetGuild = datas.find(e => e.name === guild);
       // const { allyCode, guild } = add;
-      if (target) {
+      if (targetGuild) {
         // is in another guild?
-        let found = false;
-        for (const source of datas) {
-          const i = source.members.findIndex(e => e.allyCode === allyCode);
-          found = i > -1;
-          if (found) {
-            if (source !== target) {
-              target.members.push(source.members.splice(i, 1)[0]);
-            }
-            break;
+        if (isInGuild) {
+          if (isInGuild !== targetGuild) {
+            const i = isInGuild.members.findIndex(e => e.allyCode === allyCode);
+            targetGuild.members.push(isInGuild.members.splice(i, 1)[0]);
           }
-        }
-        if (!found) {
+        } else {
           // try to guess data source
           const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
           const player = useSwgohHelp
             ? SwgohHelp.getPlayerData(allyCode)
             : SwgohGg.getPlayerData(allyCode);
-          target.members.push(player);
+          targetGuild.members.push(player);
         }
-      } if (guild === 'PLAYER') {
+      } else if (guild === 'PLAYER') {
         const target = { id: 0, name: guild, members: [] };
         datas.push(target);
         const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
