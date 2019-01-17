@@ -73,6 +73,7 @@ namespace SwgohGg {
     combat_type: number;
     type: number;
     character_base_id: string;
+    ship_base_id: string;
   }
 
   interface SwgohGgUnitResponse {
@@ -202,7 +203,7 @@ namespace SwgohGg {
 
       return {
         // baseId: e.base_id,
-        baseId: e.character_base_id,
+        baseId: e.ship_base_id ? e.ship_base_id : e.character_base_id,
         name: e.name,
         type: e.base_id.match(/^([^_]+)/)[1],
         tierMax: e.tier_max,
