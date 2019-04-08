@@ -1,15 +1,13 @@
 {
   // list all files to process for .d.ts declarations
-  "files": [
-    "src/Code.ts",
-    "src/lib.ts",
-    "src/SwgohSheetsCore.ts",
-    "src/SwgohGg.ts",
-    "src/SwgohHelp.ts"
-  ],
+  // "files": [
+  //   "src/Code.ts",
+  //   "src/lib.ts",
+  //   "src/SwgohSheetsCore.ts",
+  //   "src/SwgohGg.ts",
+  //   "src/SwgohHelp.ts"
+  // ],
   "compilerOptions": {
-    // only emit .d.ts
-    "emitDeclarationOnly": false,
     "declaration": false,
     
     "noEmitOnError": true,
@@ -29,5 +27,8 @@
   // "include": ["src/**/*.ts"],
   "exclude": [
     "node_modules"
+  ],
+  "include": [
+    "src/**/*"
   ]
 }
