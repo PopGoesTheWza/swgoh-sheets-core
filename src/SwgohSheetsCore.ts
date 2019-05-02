@@ -134,34 +134,24 @@ enum SHEETS {
 /** settings related functions */
 namespace config {
 
+  const helper = (row: number, column: number) => SPREADSHEET
+    .getSheetByName(SHEETS.SETUP)
+    .getRange(row, column)
+    .getValue() as string;
+
   /** use members galactic power stats */
   export function membersGP(): boolean {
-
-    const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(19, 9)
-      .getValue() as string;
-
-    return result === 'ON';
+    return helper(19, 9) === 'ON';
   }
 
   /** use members galactic power stats */
   export function membersBattles(): boolean {
-
-    const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(20, 9)
-      .getValue() as string;
-
-    return result === 'ON';
+    return helper(20, 9) === 'ON';
   }
 
   /** use members galactic power stats */
   export function membersGuildActivities(): boolean {
-
-    const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(21, 9)
-      .getValue() as string;
-
-    return result === 'ON';
+    return helper(21, 9) === 'ON';
   }
 
   export enum UNIT_TYPES {
@@ -189,22 +179,12 @@ namespace config {
 
   /** use members galactic power stats */
   export function heroAbilities(): string {
-
-    const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(25, 9)
-      .getValue() as string;
-
-    return result;
+    return helper(25, 9);
   }
 
   /** use members galactic power stats */
   export function shipAbilities(): boolean {
-
-    const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(26, 9)
-      .getValue() as string;
-
-    return result === 'ON';
+    return helper(26, 9) === 'ON';
   }
 
   /** SwgohHelp related settings */
@@ -222,12 +202,7 @@ namespace config {
 
     /** Get the SwgohHelp API password */
     export function password(): string {
-
-      const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-        .getRange(16, 9)
-        .getValue() as string;
-
-      return result;
+      return helper(16, 9);
     }
 
   }
@@ -542,7 +517,8 @@ namespace Core {
             const def = baseUnits.find(e => e.baseId === baseId);
             const unit = units[baseId];
             // sort abilities
-            unit.abilities = unit.abilities.sort(sortAbilities);
+            unit.abilities.sort(sortAbilities);
+            // unit.abilities = unit.abilities.sort(sortAbilities);
             if (!def.abilities) {
               def.abilities = unit.abilities;
             }

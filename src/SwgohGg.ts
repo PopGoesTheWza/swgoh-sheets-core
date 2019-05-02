@@ -6,6 +6,13 @@ namespace SwgohGg {
     SHIP = 2,
   }
 
+  interface AbilityData {
+    id: string;
+    is_zeta: boolean;
+    name: string;
+    ability_tier: number;
+  }
+
   interface SwgohGgUnit {
     data: {
       base_id: string;
@@ -19,12 +26,7 @@ namespace SwgohGg {
       level: number;
       power: number;
       rarity: number;
-      ability_data: {
-        id: string;
-        is_zeta: boolean;
-        name: string;
-        ability_tier: number;
-      }[];
+      ability_data: AbilityData[];
       stats: KeyedNumbers;
       url: string;
       zeta_abilities: string[];
@@ -250,11 +252,7 @@ namespace SwgohGg {
             level: d.level,
             power: d.power,
             rarity: d.rarity,
-            abilities: d.ability_data.map((e): Ability => {
-              const type = e.id.match(/^([^_]+)/)[1];
-
-              return { type, name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
-            }),
+            abilities: d.ability_data.map(helper),
           };
         }
         members.push({
@@ -339,11 +337,7 @@ namespace SwgohGg {
           level: d.level,
           power: d.power,
           rarity: d.rarity,
-          abilities: d.ability_data.map((e): Ability => {
-            const type = e.id.match(/^([^_]+)/)[1];
-
-            return { type, name: e.name, tier: e.ability_tier, isZeta: e.is_zeta };
-          }),
+          abilities: d.ability_data.map(helper),
         };
       }
 
@@ -352,5 +346,15 @@ namespace SwgohGg {
 
     return undefined;
   }
+
+  const helper = (e: AbilityData) => {
+
+    return {
+      type: e.id.match(/^([^_]+)/)[1],
+      name: e.name,
+      tier: e.ability_tier,
+      isZeta: e.is_zeta,
+    };
+  };
 
 }
