@@ -3,5 +3,5 @@
   "scriptIdRelease": "1a3NOop0Qp0MN9KyJW0ba20gihHmYybSNpV5IuSCrbt8TyK8lzK3n19qq",
   "scriptIdDev": "1MvgvUFu67aSfghCsbIE9Q2CYm669dHkdnNSDSw_VfRQlCYNZsSdtvgMO",
   "rootDir": "src",
-  "filePushOrder": ["src/Code.ts", "src/lib.ts"]
+  "filePushOrder": ["Code.ts"]
 }
