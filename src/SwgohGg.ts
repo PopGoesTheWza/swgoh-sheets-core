@@ -164,8 +164,28 @@ namespace SwgohGg {
         abilities: [],
       };
     };
+    const units = json.map(mapping);
+    const roles: string[] = [];
+    for (const unit of units) {
+      const role = unit.role;
+      if (role !== 'leader' && roles.indexOf(role) === -1) {
+        roles.push(role);
+      }
+    }
+    for (const unit of units) {
+      const unitRole = unit.role;
+      if (unitRole === 'leader') {
+        const tags = unit.tags;
+        for (const role of roles) {
+          if (tags.indexOf(role) !== -1) {
+            unit.role = role;
+            break;
+          }
+        }
+      }
+    }
 
-    return json.map(mapping);
+    return units;
   }
 
   /**
