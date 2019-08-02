@@ -299,18 +299,14 @@ namespace Core {
         } else {
           // try to guess data source
           const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
-          const player = useSwgohHelp
-            ? SwgohHelp.getPlayerData(allyCode)
-            : SwgohGg.getPlayerData(allyCode);
+          const player = (useSwgohHelp ? SwgohHelp : SwgohGg).getPlayerData(allyCode);
           targetGuild.members.push(player);
         }
       } else if (guild === 'PLAYER') {
         const target = { id: 0, name: guild, members: [] };
         datas.push(target);
         const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
-        const player = useSwgohHelp
-          ? SwgohHelp.getPlayerData(allyCode)
-          : SwgohGg.getPlayerData(allyCode);
+        const player = (useSwgohHelp ? SwgohHelp : SwgohGg).getPlayerData(allyCode);
         target.members.push(player);
       }
     }
@@ -522,7 +518,7 @@ namespace Core {
             if (!def.abilities) {
               def.abilities = unit.abilities;
             }
-            const type = unit.type;
+            const type = def.type || unit.type;
             if (!def.type) {
               def.type = type;
             }
@@ -853,6 +849,7 @@ namespace Core {
             if (guild.length > 0) {
               acc.add.push({ guild, allyCode: add });
             } else {
+              // TODO: check if not in loaded guild
               acc.add.push({ guild: 'PLAYER', allyCode: add });
             }
           }
@@ -907,7 +904,7 @@ namespace Core {
       sheet.clear().getRange(1, 1, values.length, headers.length)
         .setValues(values);
 
-      [last, max] = [sheet.getLastColumn(), sheet.getMaxColumns()];
+      [last, max] = [sheet.getLastRow(), sheet.getMaxRows()];
       if (max > last) {
         sheet.deleteRows(last + 1, max - last);
       }
