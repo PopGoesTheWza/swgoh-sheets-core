@@ -1,14 +1,11 @@
 {
   "timeZone": "Etc/GMT",
   "dependencies": {
-    "libraries": [
-      {
-        "userSymbol": "swgohhelpapi",
-        "libraryId": "1bMXMdwJmhTBxb4tBMEyEtw3jPVTzMZQz6NZ9Wm5-5b2MPWWFfqJVGa6n",
-        "version": "21",
-        "developmentMode": false
-      }
-    ]
+    "libraries": [{
+      "userSymbol": "swgohhelpapi",
+      "libraryId": "1bMXMdwJmhTBxb4tBMEyEtw3jPVTzMZQz6NZ9Wm5-5b2MPWWFfqJVGa6n",
+      "version": "21"
+    }]
   },
   "exceptionLogging": "STACKDRIVER"
 }
