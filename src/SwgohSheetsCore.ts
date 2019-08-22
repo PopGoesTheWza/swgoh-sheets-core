@@ -1,21 +1,13 @@
-/**
- * @OnlyCurrentDoc
- */
-
 /** refresh guilds data */
 function refreshData(): void {
-
   Core.refreshData();
-
 }
 
 /** workaround to tslint issue of namespace scope after importingtype definitions */
 declare namespace SwgohHelp {
-
   function getGuildData(allycode: number): GuildData;
   function getPlayerData(allyCode: number): PlayerData;
   function getUnitList(): UnitsDefinitions;
-
 }
 
 /** Shortcuts for Google Apps Script classes */
@@ -25,9 +17,9 @@ import Spreadsheet = GoogleAppsScript.Spreadsheet;
 import URL_Fetch = GoogleAppsScript.URL_Fetch;
 // type URLFetchRequestOptions = GoogleAppsScript.URL_Fetch.URLFetchRequestOptions;
 
-type KeyedType<T> = {
+interface KeyedType<T> {
   [key: string]: T;
-};
+}
 
 type KeyedNumbers = KeyedType<number>;
 
@@ -39,29 +31,29 @@ interface GuildData {
 
 interface PlayerData {
   allyCode: number;
-  level?: number;
+  level: number;
   link?: string;
   name: string;
   gp: number;
   heroesGp: number;
   shipsGp: number;
-  fleetArenaRank: number;
-  fleetArenaBattlesWon: number;
-  squadArenaRank: number;
-  squadArenaBattlesWon: number;
-  normalBattlesWon: number;
-  hardBattlesWon: number;
-  galacticWarBattlesWon: number;
-  guildRaidsWon: number;
-  guildTokensEarned: number;
-  gearDonatedInGuildExchange: number;
+  fleetArenaRank?: number;
+  fleetArenaBattlesWon?: number;
+  squadArenaRank?: number;
+  squadArenaBattlesWon?: number;
+  normalBattlesWon?: number;
+  hardBattlesWon?: number;
+  galacticWarBattlesWon?: number;
+  guildRaidsWon?: number;
+  guildTokensEarned?: number;
+  gearDonatedInGuildExchange?: number;
   units: UnitInstances;
 }
 
-type UnitsDefinitions = {
+interface UnitsDefinitions {
   heroes: UnitDefinition[];
   ships: UnitDefinition[];
-};
+}
 
 /** A unit's name, baseId and tags */
 interface UnitDefinition {
@@ -84,12 +76,12 @@ interface AbilityDefinition {
   isZeta: boolean;
 }
 
-type Ability = {
+interface Ability {
   name: string;
   type: string;
   tier: number;
   isZeta: boolean;
-};
+}
 
 /**
  * A unit instance attributes
@@ -108,9 +100,9 @@ interface UnitInstance {
   tags?: string;
 }
 
-type UnitInstances = {
+interface UnitInstances {
   [key: string]: UnitInstance;
-};
+}
 
 /** Constants for data source */
 enum DATASOURCES {
@@ -121,37 +113,48 @@ enum DATASOURCES {
 }
 
 /** Constants for sheets name */
-enum SHEETS {
+enum CORESHEET {
   SETUP = 'coreSetup',
-  MEMBERS = 'coreRoster',
+  ROSTER = 'coreRoster',
   UNITS = 'coreUnits',
   ABILITIES = 'coreAbilities',
   HEROES = 'coreHeroes',
   SHIPS = 'coreShips',
-  // UNITS = 'coreUnits',
+}
+
+/** Constants for sheets name */
+enum CORERANGE {
+  ADDMEMBERGPTOROSTER = 'AddMemberGPToRoster',
+  ADDMEMBERBATTLESTOROSTER = 'AddMemberBattlesToRoster',
+  ADDMEMBERGUILDACTIVITIESTOROSTER = 'AddMemberGuildActivitiesToRoster',
+  WHICHUNITTYPE = 'WhichUnitType',
+  WHICHHEROABILITIES = 'WhichHeroAbilities',
+  GETSHIPABILITIES = 'GetShipAbilities',
+  SWGOHHELPUSERNAME = 'SwgohHelpUsername',
+  SWGOHHELPPASSWORD = 'SwgohHelpPassword',
+  GUILDDATASOURCESETTINGS = 'GuildDataSourceSettings',
+  RENAMEADDREMOVE = 'RenameAddRemove',
 }
 
 /** settings related functions */
 namespace config {
-
-  const helper = (row: number, column: number) => SPREADSHEET
-    .getSheetByName(SHEETS.SETUP)
-    .getRange(row, column)
-    .getValue() as string;
-
-  /** use members galactic power stats */
-  export function membersGP(): boolean {
-    return helper(19, 9) === 'ON';
+  function getNemedRangeAsString(name: Spreadsheet.Range | string) {
+    return (typeof name === 'string' ? SPREADSHEET.getRangeByName(name) : name).getValue() as string;
   }
 
   /** use members galactic power stats */
-  export function membersBattles(): boolean {
-    return helper(20, 9) === 'ON';
+  export function addMemberGPToRoster() {
+    return getNemedRangeAsString(CORERANGE.ADDMEMBERGPTOROSTER) === 'ON';
   }
 
   /** use members galactic power stats */
-  export function membersGuildActivities(): boolean {
-    return helper(21, 9) === 'ON';
+  export function addMemberBattlesToRoster() {
+    return getNemedRangeAsString(CORERANGE.ADDMEMBERBATTLESTOROSTER) === 'ON';
+  }
+
+  /** use members galactic power stats */
+  export function addMembersGuildActivitiesToRoster() {
+    return getNemedRangeAsString(CORERANGE.ADDMEMBERGUILDACTIVITIESTOROSTER) === 'ON';
   }
 
   export enum UNIT_TYPES {
@@ -161,13 +164,8 @@ namespace config {
   }
 
   /** use members galactic power stats */
-  export function unitTypes(): string {
-
-    const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(24, 9)
-      .getValue() as string;
-
-    return result;
+  export function whichUnitType() {
+    return getNemedRangeAsString(CORERANGE.WHICHUNITTYPE) as UNIT_TYPES;
   }
 
   export enum HERO_ABILITIES {
@@ -178,56 +176,46 @@ namespace config {
   }
 
   /** use members galactic power stats */
-  export function heroAbilities(): string {
-    return helper(25, 9);
+  export function whichHeroAbilities() {
+    return getNemedRangeAsString(CORERANGE.WHICHHEROABILITIES) as HERO_ABILITIES;
   }
 
   /** use members galactic power stats */
-  export function shipAbilities(): boolean {
-    return helper(26, 9) === 'ON';
+  export function getShipAbilities() {
+    return getNemedRangeAsString(CORERANGE.GETSHIPABILITIES) === 'ON';
   }
 
   /** SwgohHelp related settings */
+  // tslint:disable-next-line: no-shadowed-variable
   export namespace SwgohHelp {
-
     /** Get the SwgohHelp API username */
-    export function username(): string {
-
-      const result = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-        .getRange(15, 9)
-        .getValue() as string;
-
-      return result.trim();
+    export function username() {
+      return `${getNemedRangeAsString(CORERANGE.SWGOHHELPUSERNAME)}`.trim();
     }
 
     /** Get the SwgohHelp API password */
     export function password(): string {
-      return helper(16, 9);
+      return `${getNemedRangeAsString(CORERANGE.SWGOHHELPPASSWORD)}`;
     }
-
   }
-
 }
 
 namespace Units {
-
   export enum TYPES {
     HERO = 1,
     SHIP = 2,
   }
-
 }
 
 namespace Core {
-
   enum UnitsAbilities {
     NONE = 'None',
     ZETAS_ONLY = 'Zetas only',
     ALL = 'All',
   }
 
+  // tslint:disable-next-line: no-shadowed-variable
   export const refreshData = (): void => {
-
     const activeGuilds = getActiveGuilds();
     const credentialIsFresh = isCredentialFresh();
     const rarIsFresh = isRARFresh();
@@ -253,67 +241,77 @@ namespace Core {
     // });
 
     if (staleGuilds) {
+      staleGuilds = activeGuilds; // TODO proper handling of stale
 
-      staleGuilds = activeGuilds;  // TODO proper handling of stale
-
+      // SPREADSHEET.toast('Get base unit definitions', 'Refresh data', 5);
       const baseUnits = getBaseUnits();
-      const baseAbilities = getBaseAbilities();
-      const datas = staleGuilds.map(e => getGuildData(e));
+      const datas = staleGuilds.map((e) => getGuildData(e)) as GuildData[];
       renameAddRemove(staleGuilds, datas);
       setGuildNames(staleGuilds, datas);
       writeGuildNames(activeGuilds);
+      // SPREADSHEET.toast(`Writing ${CORESHEETS.ROSTER}`, 'Refresh data', 5);
       writeRoster(datas);
+      // SPREADSHEET.toast(`Writing ${CORESHEETS.UNITS}`, 'Refresh data', 5);
       writeBaseUnits(baseUnits);
-      writeBaseAbilities(baseAbilities);
+      // SPREADSHEET.toast(`Writing ${CORESHEETS.ABILITIES}`, 'Refresh data', 5);
+      writeBaseAbilities(getBaseAbilities());
       writeUnits(datas, baseUnits);
       refreshGuilds();
       refreshCredential();
       refreshRAR();
     } else {
-      const UI = SpreadsheetApp.getUi();
-      UI.alert(
-        'Nothing to refresh',
-        'Data from API is cached for one hour',
-        UI.ButtonSet.OK,
-      );
+      SPREADSHEET.toast('Data from API is cached for one hour', 'Nothing to refresh', 5);
 
       return;
     }
   };
 
   const renameAddRemove = (settings: GuildSettings[], datas: GuildData[]): void => {
-    const rar = getRAR();
+    const rar = getRAR(datas);
     for (const add of rar.add) {
-      const allyCode = add.allyCode;
-      const guild = add.guild;
-      const isInGuild = datas.find(e => !!e.members.find(m => m.allyCode === allyCode));
-      const targetGuild = datas.find(e => e.name === guild);
-      // const { allyCode, guild } = add;
+      const { allyCode, guild } = add;
+      const isInGuild = datas.find((e) => !!e.members.find((m) => m.allyCode === allyCode));
+      const targetGuild = datas.find((e) => e.name === guild);
       if (targetGuild) {
         // is in another guild?
         if (isInGuild) {
           if (isInGuild !== targetGuild) {
-            const i = isInGuild.members.findIndex(e => e.allyCode === allyCode);
-            targetGuild.members.push(isInGuild.members.splice(i, 1)[0]);
+            targetGuild.members.push(
+              isInGuild.members.splice(isInGuild.members.findIndex((e) => e.allyCode === allyCode), 1)[0],
+            );
           }
         } else {
+          const useDotHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
           // try to guess data source
-          const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
-          const player = (useSwgohHelp ? SwgohHelp : SwgohGg).getPlayerData(allyCode);
-          targetGuild.members.push(player);
+          // SPREADSHEET.toast(
+          //   `Get data for member ${allyCode} of guild ${targetGuild.id} from ${useDotHelp ? 'swgoh.help' : 'swgoh.gg'}`,
+          //   'Refresh data',
+          //   5,
+          // );
+          const player = (useDotHelp ? SwgohHelp : SwgohGg).getPlayerData(allyCode);
+          if (player) {
+            targetGuild.members.push(player);
+          }
         }
       } else if (guild === 'PLAYER') {
-        const target = { id: 0, name: guild, members: [] };
+        const target: { id: number; name: string; members: PlayerData[] } = { id: 0, name: guild, members: [] };
         datas.push(target);
-        const useSwgohHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
-        const player = (useSwgohHelp ? SwgohHelp : SwgohGg).getPlayerData(allyCode);
-        target.members.push(player);
+        const useDotHelp = `${config.SwgohHelp.password()}`.trim().length > 0;
+        // SPREADSHEET.toast(
+        //   `Get data for player ${allyCode} from ${useDotHelp ? 'swgoh.help' : 'swgoh.gg'}`,
+        //   'Refresh data',
+        //   5,
+        // );
+        const player = (useDotHelp ? SwgohHelp : SwgohGg).getPlayerData(allyCode);
+        if (player) {
+          target.members.push(player);
+        }
       }
     }
     for (const rename of rar.rename) {
       const allyCode = rename.allyCode;
       for (const data of datas) {
-        const i = data.members.findIndex(e => e.allyCode === allyCode);
+        const i = data.members.findIndex((member) => member.allyCode === allyCode);
         if (i > -1) {
           data.members[i].name = rename.name;
         }
@@ -321,7 +319,7 @@ namespace Core {
     }
     for (const allyCode of rar.remove) {
       for (const data of datas) {
-        const i = data.members.findIndex(e => e.allyCode === allyCode);
+        const i = data.members.findIndex((member) => member.allyCode === allyCode);
         if (i > -1) {
           data.members.splice(i, 1);
         }
@@ -330,6 +328,7 @@ namespace Core {
   };
 
   const setGuildNames = (settings: GuildSettings[], datas: GuildData[]): void => {
+    // tslint:disable-next-line: forin
     for (const i in settings) {
       const setup = settings[i];
       if (setup.name.length === 0) {
@@ -340,20 +339,17 @@ namespace Core {
   };
 
   const writeGuildNames = (settings: GuildSettings[]): void => {
-
-    const range = SPREADSHEET.getSheetByName(SHEETS.SETUP).getRange(3, 2, 10, 5);
+    const range = SPREADSHEET.getRangeByName(CORERANGE.GUILDDATASOURCESETTINGS);
     const values = range.getValues() as string[][];
     for (const setting of settings) {
       const name = setting.name;
       const dataSource = setting.dataSource;
-      let row;
-      if (dataSource === DATASOURCES.SWGOH_GG) {
-        const id = setting.guildId;
-        row = values.find(e => e[0] === 'ON' && e[2] === dataSource && +e[3] === id);
-      } else {
-        const id = setting.allyCode;
-        row = values.find(e => e[0] === 'ON' && e[2] === dataSource && +e[4] === id);
-      }
+      const row = values.find(
+        (e) =>
+          e[0] === 'ON' &&
+          e[2] === dataSource &&
+          (dataSource === DATASOURCES.SWGOH_GG ? +e[3] === setting.guildId : +e[4] === setting.allyCode),
+      );
       if (row && row[1] !== name) {
         row[1] = name;
       }
@@ -362,74 +358,51 @@ namespace Core {
   };
 
   const writeRoster = (datas: GuildData[]): void => {
-    const addGP = config.membersGP();
-    const addBattles = config.membersBattles();
-    const addActivities = config.membersGuildActivities();
+    const addGP = config.addMemberGPToRoster();
+    const addBattles = config.addMemberBattlesToRoster();
+    const addActivities = config.addMembersGuildActivitiesToRoster();
     const values: any[][] = [];
     for (const data of datas) {
       if (data) {
         const guildId = data.id;
         const guildName = data.name;
         for (const member of data.members) {
-          let columns = [
-            guildId,
-            guildName,
-            member.name,
-            member.allyCode,
-            member.level,
-          ];
+          let columns = [guildId, guildName, member.name, member.allyCode, member.level];
           if (addGP) {
-            columns = [
-              ...columns, ...[
-                member.gp,
-                member.heroesGp,
-                member.shipsGp,
-              ]];
+            columns = [...columns, ...[member.gp, member.heroesGp, member.shipsGp]];
           }
           if (addBattles) {
             columns = [
               ...columns,
               ...[
-                member.fleetArenaRank,
-                member.fleetArenaBattlesWon,
-                member.squadArenaRank,
-                member.squadArenaBattlesWon,
-                member.normalBattlesWon,
-                member.hardBattlesWon,
-                member.galacticWarBattlesWon,
-              ]];
+                member.fleetArenaRank!,
+                member.fleetArenaBattlesWon!,
+                member.squadArenaRank!,
+                member.squadArenaBattlesWon!,
+                member.normalBattlesWon!,
+                member.hardBattlesWon!,
+                member.galacticWarBattlesWon!,
+              ],
+            ];
           }
           if (addActivities) {
             columns = [
               ...columns,
-              ...[
-                member.guildRaidsWon,
-                member.guildTokensEarned,
-                member.gearDonatedInGuildExchange,
-              ]];
+              ...[member.guildRaidsWon!, member.guildTokensEarned!, member.gearDonatedInGuildExchange!],
+            ];
           }
           values.push(columns);
         }
       }
     }
-    let headers = [
-      'guildId',
-      'guildName',
-      'name',
-      'allyCode',
-      'level',
-    ];
+    let headers = ['guildId', 'guildName', 'name', 'allyCode', 'level'];
 
     if (addGP) {
-      headers = [...headers,
-        ...[
-          'gp',
-          'heroesGp',
-          'shipsGp',
-        ]];
+      headers = [...headers, ...['gp', 'heroesGp', 'shipsGp']];
     }
     if (addBattles) {
-      headers = [...headers,
+      headers = [
+        ...headers,
         ...[
           'fleetArenaRank',
           'fleetArenaBattlesWon',
@@ -438,21 +411,13 @@ namespace Core {
           'normalBattlesWon',
           'hardBattlesWon',
           'galacticWarBattlesWon',
-        ]];
+        ],
+      ];
     }
     if (addActivities) {
-      headers = [...headers,
-        ...[
-          'guildRaidsWon',
-          'guildTokensEarned',
-          'gearDonatedInGuildExchange',
-        ]];
+      headers = [...headers, ...['guildRaidsWon', 'guildTokensEarned', 'gearDonatedInGuildExchange']];
     }
-    Sheets.setValues(
-      SPREADSHEET.getSheetByName(SHEETS.MEMBERS),
-      values,
-      headers,
-    );
+    Sheets.setValues(SPREADSHEET.getSheetByName(CORESHEET.ROSTER), values, headers);
   };
 
   const abilityTypeOrder = [
@@ -465,42 +430,37 @@ namespace Core {
   ];
 
   const sortAbilities = (a: Ability, b: Ability): number => {
-    const types =  abilityTypeOrder.indexOf(b.type) - abilityTypeOrder.indexOf(a.type);
+    const types = abilityTypeOrder.indexOf(b.type) - abilityTypeOrder.indexOf(a.type);
     return types === 0 ? a.name.localeCompare(b.name) : types;
   };
 
   const writeBaseUnits = (baseUnits: UnitDefinition[]): void => {
-    const headers = ['name', 'baseId', 'type', 'alignment', 'role', 'tags'];
-    const data = baseUnits.map(e => [
-      e.name,
-      e.baseId,
-      e.type,
-      e.alignment,
-      e.role,
-      e.tags.join(','),
-    ]);
-    Sheets.setValues(SPREADSHEET.getSheetByName(SHEETS.UNITS), data, headers);
+    Sheets.setValues(
+      SPREADSHEET.getSheetByName(CORESHEET.UNITS),
+      baseUnits.map((e) => [e.name, e.baseId, e.type, e.alignment, e.role, e.tags.join(',')]),
+      ['name', 'baseId', 'type', 'alignment', 'role', 'tags'],
+    );
   };
 
   const writeBaseAbilities = (baseAbilities: AbilityDefinition[]): void => {
-    const headers = ['baseId', 'name', 'type', 'tierMax', 'isZeta'];
-    const data = baseAbilities.map(e => [
-      e.baseId,
-      e.name,
-      e.type,
-      e.tierMax,
-      e.isZeta,
-    ]);
-    Sheets.setValues(SPREADSHEET.getSheetByName(SHEETS.ABILITIES), data, headers);
+    Sheets.setValues(
+      SPREADSHEET.getSheetByName(CORESHEET.ABILITIES),
+      baseAbilities.map((e) => [e.baseId, e.name, e.type, e.tierMax, e.isZeta]),
+      ['baseId', 'name', 'type', 'tierMax', 'isZeta'],
+    );
   };
 
   const writeUnits = (datas: GuildData[], baseUnits: UnitDefinition[]): void => {
     // TODO: use distinct sheet for base unit data (tags, abilities...)
-    const unitTypes = config.unitTypes();
+    const unitTypes = config.whichUnitType();
     const addHeroes = unitTypes !== config.UNIT_TYPES.SHIP;
     const addShips = unitTypes !== config.UNIT_TYPES.HERO;
-    const heroAbilities = config.heroAbilities();
-    const shipAbilities = config.shipAbilities();
+    const heroAbilities = config.whichHeroAbilities();
+    const getAblilities = heroAbilities !== config.HERO_ABILITIES.NONE;
+    const getZetaAblilities = heroAbilities === config.HERO_ABILITIES.ZETAS;
+    const getWorthyAblilities = heroAbilities === config.HERO_ABILITIES.WORTHY;
+    const getAllAblilities = heroAbilities === config.HERO_ABILITIES.DETAILED;
+    const shipAbilities = config.getShipAbilities();
     const heroes: any[][] = [];
     const ships: any[][] = [];
     const heroesAbilities = { count: 0, columns: 0 };
@@ -509,8 +469,9 @@ namespace Core {
       if (data) {
         for (const member of data.members) {
           const units = member.units;
+          // tslint:disable-next-line: forin
           for (const baseId in units) {
-            const def = baseUnits.find(e => e.baseId === baseId);
+            const def = baseUnits.find((e) => e.baseId === baseId) as UnitDefinition;
             const unit = units[baseId];
             // sort abilities
             unit.abilities.sort(sortAbilities);
@@ -522,28 +483,30 @@ namespace Core {
             if (!def.type) {
               def.type = type;
             }
-            if ((addHeroes && type === Units.TYPES.HERO)
-              || (addShips && type === Units.TYPES.SHIP)) {
-              const columns = type === Units.TYPES.HERO ? [
-                member.name,
-                member.allyCode,
-                def.name,
-                // def.tags,
-                unit.rarity,
-                unit.level,
-                unit.gearLevel,
-                unit.power,
-              ] : [
-                member.name,
-                member.allyCode,
-                def.name,
-                // def.tags,
-                unit.rarity,
-                unit.level,
-                unit.power,
-              ];
-              if (heroAbilities !== config.HERO_ABILITIES.NONE && type === Units.TYPES.HERO) {
-                if (heroAbilities === config.HERO_ABILITIES.ZETAS) {
+            if ((addHeroes && type === Units.TYPES.HERO) || (addShips && type === Units.TYPES.SHIP)) {
+              const columns =
+                type === Units.TYPES.HERO
+                  ? [
+                      member.name,
+                      member.allyCode,
+                      def.name,
+                      // def.tags,
+                      unit.rarity,
+                      unit.level,
+                      unit.gearLevel,
+                      unit.power,
+                    ]
+                  : [
+                      member.name,
+                      member.allyCode,
+                      def.name,
+                      // def.tags,
+                      unit.rarity,
+                      unit.level,
+                      unit.power,
+                    ];
+              if (getAblilities && type === Units.TYPES.HERO) {
+                if (getZetaAblilities) {
                   let count = 0;
                   for (const ability of unit.abilities) {
                     if (ability.isZeta && ability.tier === 8) {
@@ -553,7 +516,7 @@ namespace Core {
                     }
                   }
                   heroesAbilities.count = Math.max(count, heroesAbilities.count);
-                } else if (heroAbilities === config.HERO_ABILITIES.WORTHY) {
+                } else if (getWorthyAblilities) {
                   let count = 0;
                   for (const ability of unit.abilities) {
                     if (ability.type === 'leaderskill' || (ability.isZeta && ability.tier === 8)) {
@@ -565,7 +528,7 @@ namespace Core {
                     }
                   }
                   heroesAbilities.count = Math.max(count, heroesAbilities.count);
-                } else if (heroAbilities === config.HERO_ABILITIES.DETAILED) {
+                } else if (getAllAblilities) {
                   for (const ability of unit.abilities) {
                     columns.push(ability.name);
                     columns.push(ability.type);
@@ -610,13 +573,12 @@ namespace Core {
       'level',
       'power',
     ];
-    if (heroAbilities === config.HERO_ABILITIES.ZETAS) {
+    if (getZetaAblilities) {
       for (let i = 0; i < heroesAbilities.count; i += 1) {
         heroesHeaders.push(`ability_${i}`);
         heroesHeaders.push(`type_${i}`);
       }
-    } else if (heroAbilities === config.HERO_ABILITIES.WORTHY
-      || heroAbilities === config.HERO_ABILITIES.DETAILED) {
+    } else if (getWorthyAblilities || getAllAblilities) {
       for (let i = 0; i < heroesAbilities.count; i += 1) {
         heroesHeaders.push(`ability_${i}`);
         heroesHeaders.push(`type_${i}`);
@@ -639,14 +601,7 @@ namespace Core {
       },
       { tags: 0, abilities: 0 },
     );
-    const unitsHeaders = [
-      'name',
-      'baseId',
-      'type',
-      'alignment',
-      'role',
-      'tags',
-    ];
+    const unitsHeaders = ['name', 'baseId', 'type', 'alignment', 'role', 'tags'];
     if (counts.tags) {
       for (let i = 0; i < counts.tags; i += 1) {
         unitsHeaders.push(`tag_${i}`);
@@ -660,40 +615,43 @@ namespace Core {
       }
     }
     heroesAbilities.columns = Math.max(heroesHeaders.length, heroesAbilities.columns);
+    // SPREADSHEET.toast(`Writing ${CORESHEETS.HEROES}`, 'Refresh data', 5);
     Sheets.setValues(
-      SPREADSHEET.getSheetByName(SHEETS.HEROES),
-      heroes.map(e =>
+      SPREADSHEET.getSheetByName(CORESHEET.HEROES),
+      heroes.map((e) =>
         e.length !== heroesAbilities.columns
           ? [...e, ...Array(heroesAbilities.columns).fill(null)].slice(0, heroesAbilities.columns)
-          : e),
+          : e,
+      ),
       heroesHeaders,
     );
     shipsAbilities.columns = Math.max(shipsHeaders.length, shipsAbilities.columns);
+    // SPREADSHEET.toast(`Writing ${CORESHEETS.SHIPS}`, 'Refresh data', 5);
     Sheets.setValues(
-      SPREADSHEET.getSheetByName(SHEETS.SHIPS),
-      ships.map(e =>
+      SPREADSHEET.getSheetByName(CORESHEET.SHIPS),
+      ships.map((e) =>
         e.length !== shipsAbilities.columns
           ? [...e, ...Array(shipsAbilities.columns).fill(null)].slice(0, shipsAbilities.columns)
-          : e),
+          : e,
+      ),
       shipsHeaders,
     );
   };
 
-  type GuildSettings = {
-    name: string,
-    dataSource: DATASOURCES,
-    guildId?: number,
-    allyCode?: number,
-  };
+  interface GuildSettings {
+    name: string;
+    dataSource: DATASOURCES;
+    guildId?: number;
+    allyCode?: number;
+  }
 
   /** returns an array of active guild settings */
   const getActiveGuilds = (): GuildSettings[] => {
-
-    const guilds = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(3, 2, 10, 5).getValues().reduce(
-      (acc: GuildSettings[], columns: string[]) => {
-
-        if (columns[0] === 'ON') {  // hardcoded checkbox value
+    const guilds = SPREADSHEET.getRangeByName(CORERANGE.GUILDDATASOURCESETTINGS)
+      .getValues()
+      .reduce((acc: GuildSettings[], columns: string[]) => {
+        if (columns[0] === 'ON') {
+          // hardcoded checkbox value
           const name = columns[1];
           const dataSource = columns[2] as DATASOURCES;
           if (dataSource === DATASOURCES.SWGOH_GG) {
@@ -704,9 +662,7 @@ namespace Core {
         }
 
         return acc;
-      },
-      [],
-    ) as GuildSettings[];
+      }, []) as GuildSettings[];
 
     return guilds;
   };
@@ -719,25 +675,29 @@ namespace Core {
     return SwgohGg.getAbilityList();
   };
 
-  const getGuildData = (guild: GuildSettings): GuildData => {
-
+  const getGuildData = (guild: GuildSettings): GuildData | undefined => {
     // Figure out which data source to use
     if (guild.dataSource === DATASOURCES.SWGOH_GG) {
-      const data = SwgohGg.getGuildData(guild.guildId);
-      // fix member level
-      for (const member of data.members) {
-        let level = 1;
-        for (const baseId in member.units) {
-          level = Math.max(member.units[baseId].level, level);
+      // SPREADSHEET.toast(`Get data for guild ${guild.guildId} from swgoh.gg`, 'Refresh data', 5);
+      const data = SwgohGg.getGuildData(guild.guildId!);
+      if (data) {
+        // fix member level
+        for (const member of data.members) {
+          let level = 1;
+          // tslint:disable-next-line: forin
+          for (const baseId in member.units) {
+            level = Math.max(member.units[baseId].level, level);
+          }
+          member.level = level;
         }
-        member.level = level;
+        return data;
       }
-      return data;
+      throw new Error(`Failled: SwgohGg.getGuildData(${guild.guildId})`);
     }
     if (guild.dataSource === DATASOURCES.SWGOH_HELP) {
-      return SwgohHelp.getGuildData(guild.allyCode);
+      // SPREADSHEET.toast(`Get data for guild of ${guild.allyCode} from swgoh.help`, 'Refresh data', 5);
+      return SwgohHelp.getGuildData(guild.allyCode!);
     }
-
   };
 
   /** check if guilds setup is fresh */
@@ -752,14 +712,9 @@ namespace Core {
 
   /** compute hash for SwgohHelp guilds settings */
   const getGuildsHash = (): string => {
+    const guilds = SPREADSHEET.getRangeByName(CORERANGE.GUILDDATASOURCESETTINGS).getValues();
 
-    const guilds = SPREADSHEET.getSheetByName(SHEETS.SETUP)
-      .getRange(3, 2, 10, 5).getValues();
-
-    return String(Utilities.computeDigest(
-      Utilities.DigestAlgorithm.SHA_256,
-      JSON.stringify(guilds),
-    ));
+    return String(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify(guilds)));
   };
 
   /** check if cached credential hash is fresh */
@@ -774,19 +729,18 @@ namespace Core {
 
   /** compute hash for SwgohHelp credential settings */
   const getCredentialHash = (): string => {
-
-    const sheet = SPREADSHEET.getSheetByName(SHEETS.SETUP);
-
     const credential = [
-      ...sheet.getRange(15, 9, 2).getValues(),
-      ...sheet.getRange(19, 9, 3).getValues(),
-      ...sheet.getRange(24, 9, 3).getValues(),
+      SPREADSHEET.getRangeByName(CORERANGE.SWGOHHELPUSERNAME).getValue(),
+      SPREADSHEET.getRangeByName(CORERANGE.SWGOHHELPPASSWORD).getValue(),
+      SPREADSHEET.getRangeByName(CORERANGE.ADDMEMBERGPTOROSTER).getValue(),
+      SPREADSHEET.getRangeByName(CORERANGE.ADDMEMBERBATTLESTOROSTER).getValue(),
+      SPREADSHEET.getRangeByName(CORERANGE.ADDMEMBERGUILDACTIVITIESTOROSTER).getValue(),
+      SPREADSHEET.getRangeByName(CORERANGE.WHICHUNITTYPE).getValue(),
+      SPREADSHEET.getRangeByName(CORERANGE.WHICHHEROABILITIES).getValue(),
+      SPREADSHEET.getRangeByName(CORERANGE.GETSHIPABILITIES).getValue(),
     ];
 
-    return String(Utilities.computeDigest(
-      Utilities.DigestAlgorithm.SHA_256,
-      JSON.stringify(credential),
-    ));
+    return String(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify(credential)));
   };
 
   /** check if cached rename/add/remove hash is fresh */
@@ -803,39 +757,28 @@ namespace Core {
 
   /** compute hash for Rename/Add/Remove settings */
   const getRARHash = (): string => {
+    const rar = (SPREADSHEET.getRangeByName(CORERANGE.RENAMEADDREMOVE).getValues() as rarColumns[])
+      .reduce((acc: rarColumns[], e) => {
+        if (e[2] > 0 || e[3] > 0) {
+          acc.push(e);
+        }
+        return acc;
+      }, [])
+      .sort((a, b) => (a[2] !== b[2] ? a[2] - b[2] : a[3] - b[3]));
 
-    const sheet = SPREADSHEET.getSheetByName(SHEETS.SETUP);
-
-    const rar = sheet
-      .getRange(15, 3, sheet.getMaxRows(), 4).getValues()
-      .reduce(
-        (acc: rarColumns[], e: rarColumns) => {
-          if (e[2] > 0 || e[3] > 0) acc.push(e);
-          return acc;
-        },
-        [],
-      )
-      .sort((a, b) => a[2] !== b[2] ? a[2] - b[2] : a[3] - b[3]) as rarColumns[];
-
-    return String(Utilities.computeDigest(
-      Utilities.DigestAlgorithm.SHA_256,
-      JSON.stringify(rar),
-    ));
+    return String(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify(rar)));
   };
 
-  type RenameAddRemove = {
-    rename: { name: string, allyCode: number }[],
-    add: { guild: string, allyCode: number }[],
-    remove: number[],
-  };
+  interface RenameAddRemove {
+    rename: Array<{ name: string; allyCode: number }>;
+    add: Array<{ guild: string; allyCode: number }>;
+    remove: number[];
+  }
 
   /** compute hash for Rename/Add/Remove settings */
-  const getRAR = (): RenameAddRemove => {
-
-    const sheet = SPREADSHEET.getSheetByName(SHEETS.SETUP);
-
-    const rar = sheet
-      .getRange(15, 3, sheet.getMaxRows(), 4).getValues()
+  const getRAR = (datas: GuildData[]): RenameAddRemove => {
+    const rar = SPREADSHEET.getRangeByName(CORERANGE.RENAMEADDREMOVE)
+      .getValues()
       .reduce(
         (acc: RenameAddRemove, e) => {
           const guild = `${e[0]}`.trim();
@@ -849,8 +792,13 @@ namespace Core {
             if (guild.length > 0) {
               acc.add.push({ guild, allyCode: add });
             } else {
-              // TODO: check if not in loaded guild
-              acc.add.push({ guild: 'PLAYER', allyCode: add });
+              if (
+                datas.findIndex(
+                  (guildData) => guildData.members.findIndex((member) => member.allyCode === add) > -1,
+                ) === -1
+              ) {
+                acc.add.push({ guild: 'PLAYER', allyCode: add });
+              }
             }
           }
           if (remove > 0) {
@@ -868,40 +816,35 @@ namespace Core {
 
   /** all things cached */
   namespace Cache {
-
     const cacheKey = SPREADSHEET.getId();
-    const seconds = 3600;  // 1 hour
+    const seconds = 3600; // 1 hour
     const service = CacheService.getScriptCache();
 
-    export const getGuildsHash = (): string =>
-      service.get(`${cacheKey}-guilds`);
+    // tslint:disable-next-line: no-shadowed-variable
+    export const getGuildsHash = (): string => service.get(`${cacheKey}-guilds`);
 
-    export const setGuildsHash = (hash: string): void =>
-      service.put(`${cacheKey}-guilds`, hash, seconds);
+    export const setGuildsHash = (hash: string): void => service.put(`${cacheKey}-guilds`, hash, seconds);
 
-    export const getCredentialHash = (): string =>
-      service.get(`${cacheKey}-cred`);
+    // tslint:disable-next-line: no-shadowed-variable
+    export const getCredentialHash = (): string => service.get(`${cacheKey}-cred`);
 
-    export const setCredentialHash = (hash: string): void =>
-      service.put(`${cacheKey}-cred`, hash, seconds);
+    export const setCredentialHash = (hash: string): void => service.put(`${cacheKey}-cred`, hash, seconds);
 
-    export const getRARHash = (): string =>
-      service.get(`${cacheKey}-rar`);
+    // tslint:disable-next-line: no-shadowed-variable
+    export const getRARHash = (): string => service.get(`${cacheKey}-rar`);
 
-    export const setRARHash = (hash: string): void =>
-      service.put(`${cacheKey}-rar`, hash, seconds);
-
+    export const setRARHash = (hash: string): void => service.put(`${cacheKey}-rar`, hash, seconds);
   }
 
   namespace Sheets {
-
-    export const setValues = (sheet: Spreadsheet.Sheet, values, headers) => {
-
-      let  last: number;
+    export const setValues = (sheet: Spreadsheet.Sheet, values: any[][], headers: string[]) => {
+      let last: number;
       let max: number;
       values.unshift(headers);
 
-      sheet.clear().getRange(1, 1, values.length, headers.length)
+      sheet
+        .clear()
+        .getRange(1, 1, values.length, headers.length)
         .setValues(values);
 
       [last, max] = [sheet.getLastRow(), sheet.getMaxRows()];
@@ -916,7 +859,6 @@ namespace Core {
     };
 
     export const numberOfCells = () => {
-
       const formatThousandsNoRounding = (n: number, dp?: number) => {
         const s = `${n}`;
         const b = n < 0 ? 1 : 0;
@@ -924,23 +866,21 @@ namespace Core {
         let j = i === -1 ? s.length : i;
         let r = '';
         const d = s.substr(j + 1, dp);
+        // tslint:disable-next-line: no-conditional-assignment
         while ((j -= 3) > b) {
           r = `,${s.substr(j, 3)}${r}`;
         }
 
-        // tslint:disable-next-line:max-line-length
-        return `${s.substr(0, j + 3)}${r}${dp ? `.${d}${d.length < dp ? ('00000').substr(0, dp - d.length) : ''}` : ''}`;
+        return `${s.substr(0, j + 3)}${r}${dp ? `.${d}${d.length < dp ? '00000'.substr(0, dp - d.length) : ''}` : ''}`;
       };
 
       const sheets = SPREADSHEET.getSheets();
       let cellsCount = 0;
       for (const sheet of sheets) {
-        cellsCount += (sheet.getMaxColumns() * sheet.getMaxRows());
+        cellsCount += sheet.getMaxColumns() * sheet.getMaxRows();
       }
       // const ratio = cellsCount / 2000000 * 100;
       Logger.log(formatThousandsNoRounding(cellsCount));
     };
-
   }
-
 }
