@@ -66,6 +66,7 @@ interface UnitDefinition {
   tags: string[];
   type?: number;
   abilities?: Ability[];
+  power: number;
 }
 
 interface AbilityDefinition {
@@ -114,7 +115,7 @@ enum DATASOURCES {
 
 /** Constants for sheets name */
 enum CORESHEET {
-  SETUP = 'coreSetup',
+  // SETUP = 'coreSetup',
   ROSTER = 'coreRoster',
   UNITS = 'coreUnits',
   ABILITIES = 'coreAbilities',
@@ -437,8 +438,8 @@ namespace Core {
   const writeBaseUnits = (baseUnits: UnitDefinition[]): void => {
     Sheets.setValues(
       SPREADSHEET.getSheetByName(CORESHEET.UNITS),
-      baseUnits.map((e) => [e.name, e.baseId, e.type, e.alignment, e.role, e.tags.join(',')]),
-      ['name', 'baseId', 'type', 'alignment', 'role', 'tags'],
+      baseUnits.map((e) => [e.name, e.baseId, e.type, e.alignment, e.role, e.tags.join(','), e.power]),
+      ['name', 'baseId', 'type', 'alignment', 'role', 'tags', 'power'],
     );
   };
 

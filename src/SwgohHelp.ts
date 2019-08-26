@@ -121,6 +121,7 @@ https://github.com/PopGoesTheWza/swgoh-help-api/blob/master/README.md`,
               alignment: tags.alignment,
               baseId: unitDef.baseId,
               name: unitDef.nameKey,
+              power: 0,
               role: tags.role!,
               tags: tags.tags,
             };
