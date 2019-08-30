@@ -418,7 +418,7 @@ namespace Core {
     if (addActivities) {
       headers = [...headers, ...['guildRaidsWon', 'guildTokensEarned', 'gearDonatedInGuildExchange']];
     }
-    Sheets.setValues(SPREADSHEET.getSheetByName(CORESHEET.ROSTER), values, headers);
+    Sheets.setValues(Sheets.getSheetByNameOrDie(CORESHEET.ROSTER), values, headers);
   };
 
   const abilityTypeOrder = [
@@ -437,7 +437,7 @@ namespace Core {
 
   const writeBaseUnits = (baseUnits: UnitDefinition[]): void => {
     Sheets.setValues(
-      SPREADSHEET.getSheetByName(CORESHEET.UNITS),
+      Sheets.getSheetByNameOrDie(CORESHEET.UNITS),
       baseUnits.map((e) => [e.name, e.baseId, e.type, e.alignment, e.role, e.tags.join(','), e.power]),
       ['name', 'baseId', 'type', 'alignment', 'role', 'tags', 'power'],
     );
@@ -445,7 +445,7 @@ namespace Core {
 
   const writeBaseAbilities = (baseAbilities: AbilityDefinition[]): void => {
     Sheets.setValues(
-      SPREADSHEET.getSheetByName(CORESHEET.ABILITIES),
+      Sheets.getSheetByNameOrDie(CORESHEET.ABILITIES),
       baseAbilities.map((e) => [e.baseId, e.name, e.type, e.tierMax, e.isZeta]),
       ['baseId', 'name', 'type', 'tierMax', 'isZeta'],
     );
@@ -618,7 +618,7 @@ namespace Core {
     heroesAbilities.columns = Math.max(heroesHeaders.length, heroesAbilities.columns);
     // SPREADSHEET.toast(`Writing ${CORESHEETS.HEROES}`, 'Refresh data', 5);
     Sheets.setValues(
-      SPREADSHEET.getSheetByName(CORESHEET.HEROES),
+      Sheets.getSheetByNameOrDie(CORESHEET.HEROES),
       heroes.map((e) =>
         e.length !== heroesAbilities.columns
           ? [...e, ...Array(heroesAbilities.columns).fill(null)].slice(0, heroesAbilities.columns)
@@ -629,7 +629,7 @@ namespace Core {
     shipsAbilities.columns = Math.max(shipsHeaders.length, shipsAbilities.columns);
     // SPREADSHEET.toast(`Writing ${CORESHEETS.SHIPS}`, 'Refresh data', 5);
     Sheets.setValues(
-      SPREADSHEET.getSheetByName(CORESHEET.SHIPS),
+      Sheets.getSheetByNameOrDie(CORESHEET.SHIPS),
       ships.map((e) =>
         e.length !== shipsAbilities.columns
           ? [...e, ...Array(shipsAbilities.columns).fill(null)].slice(0, shipsAbilities.columns)
@@ -883,5 +883,14 @@ namespace Core {
       // const ratio = cellsCount / 2000000 * 100;
       Logger.log(formatThousandsNoRounding(cellsCount));
     };
+
+    export function getSheetByNameOrDie(name: string) {
+      const sheet = SPREADSHEET.getSheetByName(name);
+      if (sheet) {
+        return sheet;
+      } else {
+        throw new Error(`Missing sheet labeled '${name}'`);
+      }
+    }
   }
 }
